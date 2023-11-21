@@ -1,5 +1,6 @@
 const nodemailer = require("nodemailer");
 
+// Create a SMTP transporter object
 const transport = nodemailer.createTransport({
   host: "sandbox.smtp.mailtrap.io",
   port: 2525,
@@ -9,7 +10,7 @@ const transport = nodemailer.createTransport({
   }
 });
 
-exports.sendMail = ({recipientAddress, recipientName, senderAddress='no-reply@job.lk', senderName ='Job.lk', subject, html, attachment=[], callback}) => {
+exports.sendMail = async ({recipientAddress, recipientName, senderAddress='no-reply@job.lk', senderName ='Job.lk', subject, html, attachment=[]}) => {
   const mailOptions = {
     from: {
       name: senderName,
@@ -23,5 +24,11 @@ exports.sendMail = ({recipientAddress, recipientName, senderAddress='no-reply@jo
     html: html,
     attachments: attachment,
   };
-  transport.sendMail(mailOptions, callback);
+
+  try {
+    await transport.sendMail(mailOptions);
+    return { status: 200, code: "SUCCESS", message: 'Email sent' };
+  } catch (err) {
+    return { status: 500, code: "ERR-FAIL", message: 'Could not send email' };
+  }
 }
