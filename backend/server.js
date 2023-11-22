@@ -26,13 +26,20 @@ const defaultRouter = require("./routes/default");
 const authRouter = require("./routes/auth");
 const userRouter = require("./routes/user");
 
-app.use(cors());
+const corsOptions = {
+    origin: 'https://verceltest-azure-rho.vercel.app', 
+    credentials: true,
+    optionSuccessStatus: 200
+}
+
+app.use(cors(corsOptions));
 app.use(express.json());
 app.use(
     session({
         secret: process.env.SESSION_SECRET,
         resave: false,
-        saveUninitialized: false,
+        saveUninitialized: true,
+        cookie: { sameSite: "none", secure: true },
     })
 );
 
