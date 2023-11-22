@@ -1,19 +1,23 @@
 const db = require('./db_connection');
 const md5 = require('md5');
-const { readFileSync } = require('fs');
+const jwt = require('jsonwebtoken');
 
 const validate = require('../utils/validate');
 const User = require('../models/user');
 const nodemailer = require('./nodemailer');
 const { emailTemplate } = require('../utils/otp-email-template');
-const { send } = require('process');
-const { resolve } = require('path');
-const { rejects } = require('assert');
+
+const maxAge = 3 * 24 * 60 * 60; // 3 days in seconds
+function createToken (email, userId) {
+  return jwt.sign({ email, userId }, process.env.SESSION_SECRET, {
+    expiresIn: maxAge,
+  });
+};
 
 exports.register = (req, res) => {
 
   // Check if user is already logged in
-  if (req.session.user) {
+  if (req.cookies.jwt) {
     res.send({ code: "SUCCESS", message: 'User already logged in' });
     return;
   }
@@ -73,7 +77,7 @@ exports.register = (req, res) => {
 exports.login = (req, res) => {
 
   // Check if user is already logged in
-  if (req.session.user) {
+  if (req.cookies.jwt) {
     res.send({ code: "SUCCESS", message: 'User already logged in' });
     return;
   }
@@ -108,9 +112,7 @@ exports.login = (req, res) => {
         return;
       }
 
-      // Set session user
-      req.session.user = results[0];
-      res.send({ code:"SUCCESS", message: 'Logged in successfully' });
+      res.cookie('jwt', createToken(email, results[0].id), { httpOnly: true, sameSite: 'none', secure: true }).send({ code: "SUCCESS", message: 'User logged in successfully' });
     });
 
   } else {
@@ -134,9 +136,7 @@ exports.login = (req, res) => {
         return;
       }
 
-      // Set session user
-      req.session.user = results[0];
-      res.send({ code:"SUCCESS", message: 'Logged in' });
+      res.cookie('jwt', createToken(email, results[0].id), { httpOnly: true, maxAge: maxAge * 1000, sameSite: 'none', secure: true }).send({ code: "SUCCESS", message: 'User logged in successfully' });
     });
   }
 

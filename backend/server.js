@@ -2,6 +2,7 @@ require("dotenv").config();
 
 const express = require("express");
 const session = require("express-session");
+const cookieParser = require("cookie-parser");
 const cors = require("cors");
 const Rollbar = require("rollbar");
 
@@ -27,7 +28,7 @@ const authRouter = require("./routes/auth");
 const userRouter = require("./routes/user");
 
 const corsOptions = {
-    origin: 'https://verceltest-azure-rho.vercel.app', 
+    origin: 'http://localhost:3001', 
     credentials: true,
     optionSuccessStatus: 200
 }
@@ -42,6 +43,7 @@ app.use(
         cookie: { sameSite: "none", secure: true },
     })
 );
+app.use(cookieParser());
 
 // Routes
 app.use("/auth", middleware.auth_request, authRouter);
