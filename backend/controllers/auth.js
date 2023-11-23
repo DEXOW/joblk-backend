@@ -8,8 +8,8 @@ const nodemailer = require('./nodemailer');
 const { emailTemplate } = require('../utils/otp-email-template');
 
 const maxAge = 3 * 24 * 60 * 60; // 3 days in seconds
-function createToken (email, userId) {
-  return jwt.sign({ email, userId }, process.env.SESSION_SECRET, {
+function createToken (id, email) {
+  return jwt.sign({ id, email }, process.env.SESSION_SECRET, {
     expiresIn: maxAge,
   });
 };
@@ -112,7 +112,7 @@ exports.login = (req, res) => {
         return;
       }
 
-      res.cookie('jwt', createToken(email, results[0].id), { httpOnly: true, sameSite: 'none', secure: true }).send({ code: "SUCCESS", message: 'User logged in successfully' });
+      res.cookie('jwt', createToken(results[0].id, email), { httpOnly: true, sameSite: 'none', secure: true }).send({ code: "SUCCESS", message: 'User logged in successfully' });
     });
 
   } else {
@@ -136,7 +136,7 @@ exports.login = (req, res) => {
         return;
       }
 
-      res.cookie('jwt', createToken(email, results[0].id), { httpOnly: true, maxAge: maxAge * 1000, sameSite: 'none', secure: true }).send({ code: "SUCCESS", message: 'User logged in successfully' });
+      res.cookie('jwt', createToken(results[0].id, email), { httpOnly: true, maxAge: maxAge * 1000, sameSite: 'none', secure: true }).send({ code: "SUCCESS", message: 'User logged in successfully' });
     });
   }
 
@@ -144,16 +144,8 @@ exports.login = (req, res) => {
 
 exports.logout = (req, res) => {
 
-  // Logging out the user by destroying the session
-  req.session.destroy((err) => {
-    if (err) {
-      res.status(500).send({ message: 'Could not log out' });
-      return;
-    }
-
-    // Clearing the cookie
-    res.clearCookie('connect.sid').send({ code: "SUCCESS", message: 'Logged out successfully' });
-  });
+  // Clearing the cookie
+  res.clearCookie('jwt').send({ code: "SUCCESS", message: 'Logged out successfully' });
 }
 
 // Function to send the email using nodemailer

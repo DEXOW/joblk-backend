@@ -58,12 +58,12 @@ exports.updateUser = (req, res) => {
     return;
   }
 
-  user.update(req.session.user.id, updatedFields)
+  user.update(req.user.id, updatedFields)
     .then(result => {
       if (result.changedRows > 0) {
-        user.get(req.session.user.id)
+        user.get(req.user.id)
           .then(result => {
-            req.session.user = result;
+            req.user = result;
 
             // Remove password from user object
             const { password, ...user } = result;
@@ -91,12 +91,12 @@ exports.deleteUser = (req, res) => {
     return;
   }
 
-  if (md5(password) !== req.session.user.password) {
+  if (md5(password) !== req.user.password) {
     res.status(401).send({ code:"ERR-INVALID-CRED", message: 'Invalid credentials' });
     return;
   }
 
-  user.delete(req.session.user.id)
+  user.delete(req.user.id)
     .then(result => {
       if (result.affectedRows > 0) {
         res.send({ message: 'User deleted' });
@@ -118,12 +118,12 @@ exports.updatePassword = (req, res) => {
     return;
   }
 
-  if (md5(currentPass) !== req.session.user.password) {
+  if (md5(currentPass) !== req.user.password) {
     res.status(401).send({ code:"ERR-INVALID-CRED", message: 'Invalid password' });
     return;
   }
 
-  if (md5(newPass) === req.session.user.password) {
+  if (md5(newPass) === req.user.password) {
     res.status(400).send({ code:"ERR-INVALID-CRED", message: 'New password cannot be the same as the old one' });
     return;
   }
@@ -133,10 +133,10 @@ exports.updatePassword = (req, res) => {
     return;
   }
 
-  user.update(req.session.user.id, { password: md5(newPass) })
+  user.update(req.user.id, { password: md5(newPass) })
     .then(result => {
       if (result.changedRows > 0) {
-        req.session.destroy();
+        res.clearCookie('jwt').send({ code: "SUCCESS", message: 'Logged out successfully' });
         res.send({ message: 'Password updated' });
       } else {
         res.send({ message: 'No changes made' });

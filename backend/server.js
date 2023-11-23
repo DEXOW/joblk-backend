@@ -28,21 +28,13 @@ const authRouter = require("./routes/auth");
 const userRouter = require("./routes/user");
 
 const corsOptions = {
-    origin: 'http://localhost:3001', 
+    origin: 'https://verceltest-azure-rho.vercel.app', 
     credentials: true,
     optionSuccessStatus: 200
 }
 
 app.use(cors(corsOptions));
 app.use(express.json());
-app.use(
-    session({
-        secret: process.env.SESSION_SECRET,
-        resave: false,
-        saveUninitialized: true,
-        cookie: { sameSite: "none", secure: true },
-    })
-);
 app.use(cookieParser());
 
 // Routes
