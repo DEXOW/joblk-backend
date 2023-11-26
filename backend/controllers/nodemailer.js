@@ -10,6 +10,8 @@ const transport = nodemailer.createTransport({
   }
 });
 
+exports.transport = transport;
+
 exports.sendMail = async ({recipientAddress, recipientName, senderAddress='no-reply@job.lk', senderName ='Job.lk', subject, html, attachment=[]}) => {
   const mailOptions = {
     from: {

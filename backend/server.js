@@ -23,13 +23,16 @@ const port = process.env.PORT || 3000;
 const middleware = require("./middleware");
 const nodemailer = require("./controllers/nodemailer");
 
+const printLogs = require("./utils/status_logs");
+
 const defaultRouter = require("./routes/default");
 const authRouter = require("./routes/auth");
 const userRouter = require("./routes/user");
 const portfolioRouter = require("./routes/portfolio");
 
 const corsOptions = {
-    origin: 'https://joblk-frontend.vercel.app', 
+    // origin: 'https://joblk-frontend.vercel.app', 
+    origin: 'http://localhost:3001',
     credentials: true,
     optionSuccessStatus: 200
 }
@@ -45,5 +48,5 @@ app.use("/portfolio", middleware.auth_request, portfolioRouter);
 app.use("*", defaultRouter);
 
 app.listen(port, () => {
-    console.log(`API listening on port ${port}!`);
+    printLogs.startUpLogs();
 });

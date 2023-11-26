@@ -32,7 +32,7 @@ cp .env.example .env
 4. Configure the ```AUTH_TOKEN``` and ```SESSION_TOKEN``` with a random string:
 ```
 AUTH_TOKEN=''
-SESSION_SECRET=''
+SESSION_TOKEN_KEY=''
 ```
 - Optionally if you want to use rollbar insert your rollbar project id in the .env file:
 ```

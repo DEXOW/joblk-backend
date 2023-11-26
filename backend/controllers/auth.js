@@ -5,11 +5,11 @@ const jwt = require('jsonwebtoken');
 const validate = require('../utils/validate');
 const User = require('../models/user');
 const nodemailer = require('./nodemailer');
-const { emailTemplate } = require('../utils/otp-email-template');
+const { emailTemplate } = require('../utils/otp_email_template');
 
 const maxAge = 3 * 24 * 60 * 60; // 3 days in seconds
 function createToken (id, email) {
-  return jwt.sign({ id, email }, process.env.SESSION_SECRET, {
+  return jwt.sign({ id, email }, process.env.SESSION_TOKEN_KEY, {
     expiresIn: maxAge,
   });
 };
