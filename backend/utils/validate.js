@@ -8,6 +8,11 @@ exports.validateUsername = (username) => {
   return re.test(username);
 }
 
+exports.validateName = (name) => {
+  const re = /^[a-zA-Z]{2,30}$/;
+  return re.test(name);
+}
+
 exports.validatePassword = (password) => {
   const re = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/;
   return re.test(password);

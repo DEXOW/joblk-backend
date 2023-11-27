@@ -5,45 +5,20 @@ const validate = require('../utils/validate');
 
 exports.getUser = (req, res) => {
   const user = new User();
-  if (!req.query.id && !req.query.username && !req.query.email) {
-    res.status(400).send({ code:"ERR-MISSING-PARAM", message: 'User ID, username or email is required' });
-    return;
-  }
-  if (req.query.id) {
-    user.get(req.query.id)
-      .then(result => {
-        // Remove password from user object
-        const { password, ...user } = result;
-        res.send(user);
-      })
-      .catch(err => {
-        res.json(err);
-      });
-  } else if (req.query.username) {
-    user.getUserByUsername(req.query.username)
-      .then(result => {
-        // Remove password from user object
-        const { password, ...user } = result;
-        res.send(user);
-      })
-      .catch(err => {
-        res.json(err);
-      });
-  } else if (req.query.email) {
-    user.getUserByEmail(req.query.email)
-      .then(result => {
-        // Remove password from user object
-        const { password, ...user } = result;
-        res.send(user);
-      })
-      .catch(err => {
-        res.json(err);
-      });
+  if (req.user.id) {
+    user.get(req.user.id).then(result => {
+      // Remove password from user object
+      const { id, password, ...user } = result;
+      res.send(user);
+    })
+    .catch(err => {
+      res.json(err);
+    });
   }
 }
 
 exports.updateUser = (req, res) => {
-  const { username } = req.body;
+  const { username, first_name, last_name, email, city, province, country, avatar } = req.body;
   
   const updatedFields = {};
   const user = new User();
@@ -53,17 +28,45 @@ exports.updateUser = (req, res) => {
     updatedFields.username = username;
   }
 
+  if (first_name && validate.validateName(first_name)) {
+    updatedFields.first_name = first_name;
+  }
+
+  if (last_name && validate.validateName(last_name)) {
+    updatedFields.last_name = last_name;
+  }
+
+  if (email && validate.validateEmail(email)) {
+    updatedFields.email = email;
+  }
+
+  if (city) {
+    updatedFields.city = city;
+  }
+
+  if (province) {
+    updatedFields.province = province;
+  }
+
+  if (country) {
+    updatedFields.country = country;
+  }
+
+  if (avatar) {
+    updatedFields.avatar = avatar;
+  }
+
   if (Object.keys(updatedFields).length === 0) {
     res.status(400).send({ code:"ERR-MISSING-BODY", message: 'No fields to update' });
     return;
   }
 
-  user.update(req.session.user.id, updatedFields)
+  user.update(req.user.id, updatedFields)
     .then(result => {
       if (result.changedRows > 0) {
-        user.get(req.session.user.id)
+        user.get(req.user.id)
           .then(result => {
-            req.session.user = result;
+            req.user = result;
 
             // Remove password from user object
             const { password, ...user } = result;
@@ -73,7 +76,7 @@ exports.updateUser = (req, res) => {
             res.send(err);
           });
       } else {
-        res.send({ message: 'No changes made' });
+        res.status(200).send({ code: "SUCCESS", message: 'No changes made' });
       }
     })
     .catch(err => {
@@ -91,12 +94,12 @@ exports.deleteUser = (req, res) => {
     return;
   }
 
-  if (md5(password) !== req.session.user.password) {
+  if (md5(password) !== req.user.password) {
     res.status(401).send({ code:"ERR-INVALID-CRED", message: 'Invalid credentials' });
     return;
   }
 
-  user.delete(req.session.user.id)
+  user.delete(req.user.id)
     .then(result => {
       if (result.affectedRows > 0) {
         res.send({ message: 'User deleted' });
@@ -118,12 +121,12 @@ exports.updatePassword = (req, res) => {
     return;
   }
 
-  if (md5(currentPass) !== req.session.user.password) {
+  if (md5(currentPass) !== req.user.password) {
     res.status(401).send({ code:"ERR-INVALID-CRED", message: 'Invalid password' });
     return;
   }
 
-  if (md5(newPass) === req.session.user.password) {
+  if (md5(newPass) === req.user.password) {
     res.status(400).send({ code:"ERR-INVALID-CRED", message: 'New password cannot be the same as the old one' });
     return;
   }
@@ -133,10 +136,10 @@ exports.updatePassword = (req, res) => {
     return;
   }
 
-  user.update(req.session.user.id, { password: md5(newPass) })
+  user.update(req.user.id, { password: md5(newPass) })
     .then(result => {
       if (result.changedRows > 0) {
-        req.session.destroy();
+        res.clearCookie('jwt').send({ code: "SUCCESS", message: 'Logged out successfully' });
         res.send({ message: 'Password updated' });
       } else {
         res.send({ message: 'No changes made' });

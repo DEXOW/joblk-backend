@@ -1,19 +1,23 @@
 const db = require('./db_connection');
 const md5 = require('md5');
-const { readFileSync } = require('fs');
+const jwt = require('jsonwebtoken');
 
 const validate = require('../utils/validate');
 const User = require('../models/user');
 const nodemailer = require('./nodemailer');
-const { emailTemplate } = require('../utils/otp-email-template');
-const { send } = require('process');
-const { resolve } = require('path');
-const { rejects } = require('assert');
+const { emailTemplate } = require('../utils/otp_email_template');
+
+const maxAge = 3 * 24 * 60 * 60; // 3 days in seconds
+function createToken (id, email) {
+  return jwt.sign({ id, email }, process.env.SESSION_TOKEN_KEY, {
+    expiresIn: maxAge,
+  });
+};
 
 exports.register = (req, res) => {
 
   // Check if user is already logged in
-  if (req.session.user) {
+  if (req.cookies.jwt) {
     res.send({ code: "SUCCESS", message: 'User already logged in' });
     return;
   }
@@ -73,7 +77,7 @@ exports.register = (req, res) => {
 exports.login = (req, res) => {
 
   // Check if user is already logged in
-  if (req.session.user) {
+  if (req.cookies.jwt) {
     res.send({ code: "SUCCESS", message: 'User already logged in' });
     return;
   }
@@ -108,9 +112,7 @@ exports.login = (req, res) => {
         return;
       }
 
-      // Set session user
-      req.session.user = results[0];
-      res.send({ code:"SUCCESS", message: 'Logged in successfully' });
+      res.cookie('jwt', createToken(results[0].id, email), { httpOnly: true, sameSite: 'none', secure: true }).send({ code: "SUCCESS", message: 'User logged in successfully' });
     });
 
   } else {
@@ -134,9 +136,7 @@ exports.login = (req, res) => {
         return;
       }
 
-      // Set session user
-      req.session.user = results[0];
-      res.send({ code:"SUCCESS", message: 'Logged in' });
+      res.cookie('jwt', createToken(results[0].id, email), { httpOnly: true, maxAge: maxAge * 1000, sameSite: 'none', secure: true }).send({ code: "SUCCESS", message: 'User logged in successfully' });
     });
   }
 
@@ -144,16 +144,8 @@ exports.login = (req, res) => {
 
 exports.logout = (req, res) => {
 
-  // Logging out the user by destroying the session
-  req.session.destroy((err) => {
-    if (err) {
-      res.status(500).send({ message: 'Could not log out' });
-      return;
-    }
-
-    // Clearing the cookie
-    res.clearCookie('connect.sid').send({ code: "SUCCESS", message: 'Logged out successfully' });
-  });
+  // Clearing the cookie
+  res.clearCookie('jwt').send({ code: "SUCCESS", message: 'Logged out successfully' });
 }
 
 // Function to send the email using nodemailer
