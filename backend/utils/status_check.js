@@ -1,33 +1,32 @@
-const db = require("../controllers/db_connection");
+const db = require("./db_connection");
 const nodemailer = require("../controllers/nodemailer");
 
 exports.dbStatus = function () {
-  return new Promise((resolve, rejects) => {
+  return new Promise((resolve, reject) => {
     try {
       db.connect((err) => {
         if (err) {
-          rejects({ code: "ERROR", message: err  });
+          resolve({ code: "ERROR", message: err  });
         }
         resolve('OK');
       });
     } catch (err) {
-      rejects({ code: "ERROR", message: err  });
+      reject({ code: "ERROR", message: err  });
     }
   });
 };
 
 exports.mailStatus = function () {
-  return new Promise((resolve, rejects) => {
+  return new Promise((resolve, reject) => {
     try {
-      // TODO: Fix this (Error occurs at this line)
       nodemailer.transport.verify((err, success) => {
         if (err) {
-          rejects({ code: "ERROR", message: err  });
+          resolve({ code: "ERROR", message: err  });
         }
         resolve('OK');
       });
     } catch (err) {
-      rejects({ code: "ERROR", message: err  });
+      reject({ code: "ERROR", message: err  });
     }
   });
 };

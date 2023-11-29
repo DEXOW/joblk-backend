@@ -1,4 +1,4 @@
-const db = require('./db_connection');
+const db = require('../utils/db_connection');
 const md5 = require('md5');
 const jwt = require('jsonwebtoken');
 
