@@ -1,4 +1,4 @@
-const db = require('./db_connection');
+const db = require('../utils/db_connection');
 
 exports.getProjects = (req, res) => {
   if (req.user.id) {
