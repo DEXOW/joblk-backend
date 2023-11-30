@@ -18,7 +18,7 @@ exports.getUser = (req, res) => {
 }
 
 exports.updateUser = (req, res) => {
-  const { username, first_name, last_name, email, city, province, country, avatar } = req.body;
+  const { username, full_name, email, city, province, country, avatar } = req.body;
   
   const updatedFields = {};
   const user = new User();
@@ -28,12 +28,8 @@ exports.updateUser = (req, res) => {
     updatedFields.username = username;
   }
 
-  if (first_name && validate.validateName(first_name)) {
-    updatedFields.first_name = first_name;
-  }
-
-  if (last_name && validate.validateName(last_name)) {
-    updatedFields.last_name = last_name;
+  if (full_name && validate.validateName(full_name)) {
+    updatedFields.full_name = full_name;
   }
 
   if (email && validate.validateEmail(email)) {

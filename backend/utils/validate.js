@@ -9,7 +9,7 @@ exports.validateUsername = (username) => {
 }
 
 exports.validateName = (name) => {
-  const re = /^[a-zA-Z]{2,30}$/;
+  const re = /^[a-zA-Z\s]{3,20}$/;
   return re.test(name);
 }
 
