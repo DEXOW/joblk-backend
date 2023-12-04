@@ -31,7 +31,7 @@ const userRouter = require("./routes/user");
 const portfolioRouter = require("./routes/portfolio");
 
 const corsOptions = {
-    origin: 'https://joblk-frontend.vercel.app', 
+    origin: 'https://joblk.vercel.app', 
     credentials: true,
     optionSuccessStatus: 200
 }
