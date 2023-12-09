@@ -29,6 +29,7 @@ const defaultRouter = require("./routes/default");
 const authRouter = require("./routes/auth");
 const userRouter = require("./routes/user");
 const portfolioRouter = require("./routes/portfolio");
+const jobRouter = require("./routes/job")
 
 const corsOptions = {
     origin: 'https://joblk-frontend.vercel.app', 
@@ -44,6 +45,7 @@ app.use(cookieParser());
 app.use("/auth", middleware.auth_request, authRouter);
 app.use("/user", middleware.auth_request, userRouter);
 app.use("/portfolio", middleware.auth_request, portfolioRouter);
+app.use("/job", middleware.auth_request, jobRouter);
 app.use("*", defaultRouter);
 
 app.listen(port, () => {
