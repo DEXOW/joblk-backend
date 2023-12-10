@@ -3,6 +3,15 @@ const Job = require('../models/job');
 exports.createJob = (req, res) => {
   const job = new Job();
   const jobData = req.body;
+
+  const requiredFields = ['title', 'description', 'budget']; 
+
+  for (let field of requiredFields) {
+    if (!jobData.hasOwnProperty(field) || !jobData[field]) {
+      res.status(400).send({ message: `Missing or empty required field: ${field}` });
+      return;
+    }
+  }
   
   //TODO add validations
   job.create(jobData)
@@ -43,6 +52,15 @@ exports.updateJob = (req, res) => {
   const job = new Job();
   const jobId = req.params.id;
   const jobData = req.body;
+
+  const requiredFields = ['title', 'description', 'budget']; 
+
+  for (let field of requiredFields) {
+    if (!jobData.hasOwnProperty(field) || !jobData[field]) {
+      res.status(400).send({ message: `Missing or empty required field: ${field}` });
+      return;
+    }
+  }
 
   //TODO add validations 
 
