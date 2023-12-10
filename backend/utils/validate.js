@@ -22,3 +22,13 @@ exports.validateOTP = (otp) => {
   const re = /^[0-9]{6}$/;
   return re.test(otp);
 }
+
+exports.validateTitle = (title) => {
+  const re = /^[a-zA-Z0-9\s.,()#\-_\[\]]{3,}$/;
+  return re.test(title);
+};
+
+exports.validateBudget = (budget) => {
+  const re = /^[-\d\s]{1,}$/;
+  return re.test(budget);
+};

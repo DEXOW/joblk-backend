@@ -1,4 +1,5 @@
 const Job = require('../models/job');
+const validate = require('../utils/validate');
 
 exports.createJob = (req, res) => {
   const job = new Job();
@@ -11,6 +12,16 @@ exports.createJob = (req, res) => {
       res.status(400).send({ message: `Missing or empty required field: ${field}` });
       return;
     }
+  }
+
+  if (!validate.validateTitle(jobData.title) || !validate.validateTitle(jobData.description)) {
+    res.status(400).send({ message: 'Invalid Title or Description' });
+    return;
+  }
+
+  if (!validate.validateBudget(jobData.budget)) {
+    res.status(400).send({ message: 'Invalid budget format' });
+    return;
   }
   
   //TODO add validations
@@ -60,6 +71,16 @@ exports.updateJob = (req, res) => {
       res.status(400).send({ message: `Missing or empty required field: ${field}` });
       return;
     }
+  }
+
+  if (!validate.validateTitle(jobData.title) || !validate.validateTitle(jobData.description)) {
+    res.status(400).send({ message: 'Title and description should only contain text' });
+    return;
+  }
+
+  if (!validate.validateBudget(jobData.budget)) {
+    res.status(400).send({ message: 'Invalid budget format' });
+    return;
   }
 
   //TODO add validations 
