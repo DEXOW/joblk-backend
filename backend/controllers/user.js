@@ -8,10 +8,10 @@ exports.getUser = (req, res) => {
   if (req.user.id) {
     user.get(req.user.id).then(result => {
       // Remove password from user object
-      const { id, password, ...user } = result;
+      const { id, password, ...userData } = result;
       user.getAverageRating(req.user.id).then(averageRating => {
-        user.averageRating = averageRating;
-        res.send(user);
+        userData.averageRating = averageRating;
+        res.send(userData);
       }).catch(err => {
         res.status(500).send({ message: 'Could not retrieve average rating', err });
       });

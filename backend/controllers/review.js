@@ -11,7 +11,6 @@ exports.createReview = (req, res) => {
     return;
   }
 
-  
 
   review.create(reviewData)
     .then((reviewId) => {
@@ -48,6 +47,8 @@ exports.updateReview = (req, res) => {
 exports.getReviewsForUser = (req, res) => {
   const review = new Review();
   const userId = parseInt(req.params.id);
+
+  
 
   review.getAll()
     .then((reviews) => {
