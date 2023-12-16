@@ -5,10 +5,10 @@ const controller = require('../controllers/job');
 const middleware = require('../middleware');
 
 // Routes
-router.post('/', middleware.auth_request, controller.createJob);
-router.get('/', middleware.auth_request, controller.getJobs);
-router.get('/:id', middleware.auth_request, controller.getJob);
-router.put('/:id', middleware.auth_request, controller.updateJob);
-router.delete('/:id', middleware.auth_request, controller.deleteJob);
+router.post('/', middleware.auth, controller.createJob);
+router.get('/', middleware.auth, controller.getJobs);
+router.get('/:id', middleware.auth, controller.getJob);
+router.put('/:id', middleware.auth, controller.updateJob);
+router.delete('/:id', middleware.auth, controller.deleteJob);
 
 module.exports = router;

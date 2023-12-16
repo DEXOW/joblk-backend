@@ -5,6 +5,8 @@ exports.createJob = (req, res) => {
   const job = new Job();
   const jobData = req.body;
 
+  
+  jobData.client_id = req.user.id;
   const requiredFields = ['title', 'description', 'budget']; 
 
   for (let field of requiredFields) {
@@ -74,7 +76,7 @@ exports.updateJob = (req, res) => {
   }
 
   if (!validate.validateTitle(jobData.title) || !validate.validateTitle(jobData.description)) {
-    res.status(400).send({ message: 'Title and description should only contain text' });
+    res.status(400).send({ message: 'Invalid format' });
     return;
   }
 

@@ -9,7 +9,12 @@ exports.getUser = (req, res) => {
     user.get(req.user.id).then(result => {
       // Remove password from user object
       const { id, password, ...user } = result;
-      res.send(user);
+      user.getAverageRating(req.user.id).then(averageRating => {
+        user.averageRating = averageRating;
+        res.send(user);
+      }).catch(err => {
+        res.status(500).send({ message: 'Could not retrieve average rating', err });
+      });
     })
     .catch(err => {
       res.json(err);
