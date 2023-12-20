@@ -21,6 +21,17 @@ exports.getUser = (req, res) => {
     });
   }
 }
+exports.getAllUsers = (req, res) => {
+  const user = new User();
+
+  user.getAll()
+    .then((users) => {
+      res.send(users);
+    })
+    .catch((err) => {
+      res.status(500).send({ message: 'Could not retrieve users', err });
+    });
+};
 
 exports.updateUser = (req, res) => {
   const { username, full_name, email, city, province, country, avatar } = req.body;

@@ -6,6 +6,7 @@ const middleware = require('../middleware');
 
 // Routes
 router.get('/', middleware.auth, controllers.getUser);
+router.get('/all', middleware.auth, controllers.getAllUsers);
 router.put('/', middleware.auth, controllers.updateUser);
 router.delete('/', middleware.auth, controllers.deleteUser);
 
