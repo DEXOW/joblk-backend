@@ -26,7 +26,13 @@ exports.getAllUsers = (req, res) => {
 
   user.getAll()
     .then((users) => {
-      res.send(users);
+      // Remove password and id from each user
+      const usersWithoutPasswordAndId = users.map(user => {
+        const { id, password, ...userData } = user;
+        return userData;
+      });
+
+      res.send(usersWithoutPasswordAndId);
     })
     .catch((err) => {
       res.status(500).send({ message: 'Could not retrieve users', err });
