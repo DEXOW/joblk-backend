@@ -85,11 +85,13 @@ exports.updateJob = (req, res) => {
     return;
   }
 
-  //TODO add validations 
-
   job.update(jobId, jobData)
-    .then(() => {
-      res.send({ message: 'Job updated successfully' });
+    .then((result) => {
+      if (result.affectedRows === 0) {
+        res.status(404).send({ message: 'Job not found' });
+      } else {
+        res.send({ message: 'Job updated successfully' });
+      }
     })
     .catch((err) => {
       res.status(500).send({ message: 'Could not update job', err });
