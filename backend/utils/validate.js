@@ -32,3 +32,19 @@ exports.validateBudget = (budget) => {
   const re = /^[-\d\s]{1,}$/;
   return re.test(budget);
 };
+
+exports.validateBid = (bid_value, supporting_content) => {
+  const errors = {};
+
+  if (!bid_value) {
+    errors.bid_value = 'Missing bid value';
+  } else if (isNaN(bid_value) || bid_value < 100) {
+    errors.bid_value = 'Invalid bid value';
+  }
+
+  if (supporting_content && typeof supporting_content !== 'string') {
+    errors.supporting_content = 'Supporting content must be a string';
+  }
+
+  return Object.keys(errors).length > 0 ? errors : null;
+};

@@ -30,6 +30,7 @@ const authRouter = require("./routes/auth");
 const userRouter = require("./routes/user");
 const portfolioRouter = require("./routes/portfolio");
 const jobRouter = require("./routes/job")
+const bidRouter = require("./routes/bid")
 const reviewRouter = require("./routes/review")
 
 const corsOptions = {
@@ -47,6 +48,7 @@ app.use("/auth", middleware.auth_request, authRouter);
 app.use("/user", middleware.auth_request, userRouter);
 app.use("/portfolio", middleware.auth_request, portfolioRouter);
 app.use("/job", middleware.auth_request, jobRouter);
+app.use("/bid", middleware.auth_request, bidRouter);
 app.use("/review", middleware.auth_request, reviewRouter);
 app.use("*", defaultRouter);
 
