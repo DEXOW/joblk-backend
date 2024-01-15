@@ -12,7 +12,7 @@ exports.submitBid = async (req, res, next) => {
     
     const validationErrors = validate.validateBid(bid_value, supporting_content);
     if (validationErrors) {
-      return res.status(400).json({ code: 'ERR', message: validationErrors });
+      return res.status(400).json({ code: 'ERROR', message: validationErrors });
     }
 
     const job = await Job.findById(job_id);
@@ -38,7 +38,7 @@ exports.submitBid = async (req, res, next) => {
       status: 1
     });
 
-    res.status(201).json({ code: "SUCCESS", message: 'Bid submitted successfully', bidId });
+    res.status(200).json({ code: "SUCCESS", message: 'Bid submitted successfully', bidId });
   } catch (error) {
     next(error);
   }

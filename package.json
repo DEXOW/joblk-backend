@@ -24,6 +24,7 @@
     "mysql2": "^3.6.5",
     "nodemailer": "^6.9.7",
     "nodemon": "^3.0.2",
-    "rollbar": "^2.26.2"
+    "rollbar": "^2.26.2",
+    "socket.io": "^4.7.4"
   }
 }
