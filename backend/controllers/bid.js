@@ -58,6 +58,15 @@ exports.getJobBidsSortedByScores = async (req, res, next) => {
   try {
     const job_id = req.params.id;
     const originalBudget = await Job.getBudgetById(job_id);
+    const job = await Job.findById(job_id);
+
+    if (!job) {
+      return res.status(404).json({ code: "ERROR", message: 'Job not found' });
+    }
+
+    if (job.client_id !== req.user.id) {
+      return res.status(403).json({ code: "ERROR", message: 'You are not authorized to view this job\'s bids' });
+    }
 
     if (!originalBudget) {
       return res.status(404).json({ code: "ERROR", message: 'Job not found' });
@@ -84,6 +93,16 @@ exports.updateBidStatus = async (req, res, next) => {
     const { id: bidId } = req.params;
     const { status } = req.body;
     const currentBid = await Bid.findById(bidId);
+
+    const job = await Job.findById(currentBid.job_id);
+
+    if (!job) {
+      return res.status(404).json({ code: "ERROR", message: 'Job not found' });
+    }
+    
+    if (job.client_id !== req.user.id) {
+      return res.status(403).json({ code: "ERROR", message: 'You are not authorized to update this bid' });
+    }
 
     if (!currentBid) {
       return res.status(404).json({ code: "ERROR", message: 'Bid not found' });
