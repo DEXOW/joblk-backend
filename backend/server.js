@@ -31,7 +31,8 @@ const userRouter = require("./routes/user");
 const portfolioRouter = require("./routes/portfolio");
 const jobRouter = require("./routes/job");
 const bidRouter = require("./routes/bid");
-const conversationRouter = require("./routes/conversation")
+const projectRouter = require("./routes/project");
+const conversationRouter = require("./routes/conversation");
 const messageRouter = require("./routes/message");
 const reviewRouter = require("./routes/review");
 
@@ -51,6 +52,7 @@ app.use("/user", middleware.auth_request, userRouter);
 app.use("/portfolio", middleware.auth_request, portfolioRouter);
 app.use("/job", middleware.auth_request, jobRouter);
 app.use("/bid", middleware.auth_request, bidRouter);
+app.use("/project", middleware.auth_request, projectRouter);
 app.use("/conversation", middleware.auth_request, conversationRouter);
 app.use("/message", middleware.auth_request, messageRouter);
 app.use("/review", middleware.auth_request, reviewRouter);
