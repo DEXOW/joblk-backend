@@ -2,6 +2,8 @@ const Job = require('../models/job');
 const Review = require('../models/review');
 const User = require('../models/user');
 const Bid = require('../models/bid');
+const Project = require('../models/project');
+const Milestone = require('../models/milestone');
 const validate = require('../utils/validate');
 
 exports.submitBid = async (req, res, next) => {
@@ -9,7 +11,7 @@ exports.submitBid = async (req, res, next) => {
     const { bid_value, supporting_content } = req.body;
     const { id: job_id } = req.params;
     const freelancer_id = req.user.id;
-    
+
     const validationErrors = validate.validateBid(bid_value, supporting_content);
     if (validationErrors) {
       return res.status(400).json({ code: 'ERROR', message: validationErrors });
@@ -99,7 +101,7 @@ exports.updateBidStatus = async (req, res, next) => {
     if (!job) {
       return res.status(404).json({ code: "ERROR", message: 'Job not found' });
     }
-    
+
     if (job.client_id !== req.user.id) {
       return res.status(403).json({ code: "ERROR", message: 'You are not authorized to update this bid' });
     }
@@ -114,6 +116,25 @@ exports.updateBidStatus = async (req, res, next) => {
 
     if (![2, 3].includes(status)) {
       return res.status(400).json({ code: "ERROR", message: 'Bid status can only be set to accepted (2) or rejected (3)' });
+    }
+
+    if (status == 2) {
+      // Update the job's freelancer_id and status
+      await Job.updateFreelancerIdAndStatus(currentBid.job_id, currentBid.freelancer_id, status);
+
+      // Create a new project
+      const project = new Project();
+      const newProject = await project.create({ job_id: currentBid.job_id, status:1 });
+
+      // Create a default milestone
+      const milestone = new Milestone();
+      await milestone.create({
+        project_id: newProject,
+        name: 'Final Milestone',
+        description: 'This is the final milestone, submit your work here.',
+        due_date: job.deadline,
+        status: 1, // Assuming 0 is the status for a new milestone
+      });
     }
 
     await Bid.updateStatus(bidId, status, new Date());
