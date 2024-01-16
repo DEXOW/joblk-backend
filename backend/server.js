@@ -37,7 +37,8 @@ const messageRouter = require("./routes/message");
 const reviewRouter = require("./routes/review");
 
 const corsOptions = {
-    origin: ['https://joblk-frontend.vercel.app', 'http://localhost:3000', 'https://joblk-frontend-git-dev-thinal-manethsw.vercel.app'], 
+    // origin: ['https://joblk-frontend.vercel.app', 'http://localhost:3000', 'https://joblk-frontend-git-dev-thinal-manethsw.vercel.app'], 
+    origin: ['http://localhost:3000'], 
     credentials: true,
     optionSuccessStatus: 200
 }
@@ -46,7 +47,6 @@ app.use(cors(corsOptions));
 app.use(express.json());
 app.use(cookieParser());
 
-// Routes
 app.use("/auth", middleware.auth_request, authRouter);
 app.use("/user", middleware.auth_request, userRouter);
 app.use("/portfolio", middleware.auth_request, portfolioRouter);

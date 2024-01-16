@@ -119,21 +119,19 @@ exports.updateBidStatus = async (req, res, next) => {
     }
 
     if (status == 2) {
-      // Update the job's freelancer_id and status
       await Job.updateFreelancerIdAndStatus(currentBid.job_id, currentBid.freelancer_id, status);
 
-      // Create a new project
       const project = new Project();
       const newProject = await project.create({ job_id: currentBid.job_id, status:1 });
 
-      // Create a default milestone
       const milestone = new Milestone();
       await milestone.create({
         project_id: newProject,
         name: 'Final Milestone',
         description: 'This is the final milestone, submit your work here.',
         due_date: job.deadline,
-        status: 1, // Assuming 0 is the status for a new milestone
+        status: 1,
+        order_number: 1,
       });
     }
 
