@@ -137,7 +137,7 @@ exports.updateMilestoneData = async (req, res, next) => {
         const finalMilestone = await milestone.getFinalMilestone(currentMilestone.project_id);
         const mostRecentMilestoneDueDate = await milestone.getDueDateOfMostRecentMilestone(currentMilestone.project_id);
 
-        if (currentMilestone.id === finalMilestone.id && due_date !== undefined && due_date !== currentMilestone.due_date) {
+        if (currentMilestone.id === finalMilestone.id && due_date === finalMilestone.due_date) {
             return res.status(400).json({ code: "ERROR", message: 'Cannot update due date of the final milestone' });
         }
 
