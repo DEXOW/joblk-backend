@@ -8,7 +8,7 @@ module.exports = class Milestone extends Model {
 
   async getMilestonesByProjectId(projectId) {
     return new Promise((resolve, reject) => {
-      const sql = `SELECT id, project_id, name, description, due_date, status, order_number 
+      const sql = `SELECT id, project_id, name, description, due_date, priority, budget, status, order_number 
       FROM milestones WHERE project_id = ? ORDER BY order_number ASC`;
       db.query(sql, [projectId], (err, results) => {
         if (err) {
@@ -144,16 +144,81 @@ module.exports = class Milestone extends Model {
     })
   }
 
-  async addContent(id, content) {
+  async calculateTotalPriority(projectId) {
     return new Promise((resolve, reject) => {
-        const sql = `UPDATE milestones SET content = ? WHERE id = ?`;
-        db.query(sql, [content, id], (err, results) => {
+      const sql = `SELECT SUM(priority) as totalPriority FROM milestones WHERE project_id = ?`;
+      db.query(sql, [projectId], (err, results) => {
+        if (err) {
+          reject(err);
+          return;
+        }
+        resolve(results[0].totalPriority);
+      });
+    });
+  }
+
+  async updateBudgets(projectId) {
+    return new Promise((resolve, reject) => {
+      const sqlDropTempTable = `DROP TEMPORARY TABLE IF EXISTS temp_table`;
+      db.query(sqlDropTempTable, (err, results) => {
+        if (err) {
+          reject(err);
+          return;
+        }
+        const sqlCreateTempTable = `
+     CREATE TEMPORARY TABLE temp_table AS (
+         SELECT SUM(priority) as totalPriority FROM milestones WHERE project_id = ?
+     )
+ `;
+        db.query(sqlCreateTempTable, [projectId], (err, results) => {
+          if (err) {
+            reject(err);
+            return;
+          }
+          const sqlUpdateMilestones = `
+         UPDATE milestones 
+         SET budget = (SELECT budget FROM projects WHERE id = ?) / (SELECT totalPriority FROM temp_table) * priority
+         WHERE project_id = ?
+     `;
+          db.query(sqlUpdateMilestones, [projectId, projectId], (err, results) => {
             if (err) {
-                reject(err);
-                return;
+              reject(err);
+              return;
             }
             resolve(results);
+          });
         });
+      });
     });
- }
+  }
+
+  //  async updateBudgets(projectId) {
+  //     return new Promise((resolve, reject) => {
+  //         const sql = `
+  //             UPDATE milestones 
+  //             SET budget = (SELECT budget FROM projects WHERE id = ?) / (SELECT SUM(priority) FROM milestones WHERE project_id = ?) * priority
+  //             WHERE project_id = ?
+  //         `;
+  //         db.query(sql, [projectId, projectId, projectId], (err, results) => {
+  //             if (err) {
+  //                 reject(err);
+  //                 return;
+  //             }
+  //             resolve(results);
+  //         });
+  //     });
+  //  }
+
+  async addContent(id, content) {
+    return new Promise((resolve, reject) => {
+      const sql = `UPDATE milestones SET content = ? WHERE id = ?`;
+      db.query(sql, [content, id], (err, results) => {
+        if (err) {
+          reject(err);
+          return;
+        }
+        resolve(results);
+      });
+    });
+  }
 };

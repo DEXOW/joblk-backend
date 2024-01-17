@@ -7,7 +7,21 @@ const storage = new Storage({ keyFilename: './path-to-your-keyfile.json' });
 exports.getMyProjects = async (req, res, next) => {
     try {
         const user_id = req.user.id;
-        const bids = await Project.getProjectsByUserId(user_id);
+        const { user_type } = req.body;
+        var bids;
+
+        if (!user_type) {
+            return res.status(404).json({ error: 'Missing required fields' });
+        }
+
+        if (user_type == "client") {
+            bids = await Project.getProjectsForClient(user_id);
+        } else if (user_type == "freelancer") {
+            bids = await Project.getProjectsForFreelancer(user_id);
+        } else {
+            return res.status(404).json({ error: 'Invalid user type' });
+        }
+        
         res.json(bids);
     } catch (error) {
         next(error);
@@ -45,7 +59,7 @@ exports.createMilestone = async (req, res, next) => {
     try {
         const projectId = req.params.id;
         const userId = req.user.id;
-        const { name, description, due_date } = req.body;
+        const { name, description, due_date, priority } = req.body;
         const project = new Project();
 
         const currentProject = await project.get(projectId);
@@ -62,7 +76,7 @@ exports.createMilestone = async (req, res, next) => {
             return res.status(400).json({ code: "ERROR", message: 'Project has been completed' });
         }
 
-        if (!name || !description || !due_date) {
+        if (!name || !description || !due_date || !priority) {
             return res.status(400).json({ code: "ERROR", message: 'Missing required fields' });
         }
 
@@ -77,14 +91,23 @@ exports.createMilestone = async (req, res, next) => {
 
         const finalOrderNumber = await milestone.getOrderNumberOfFinalMilestone(projectId);
         await milestone.incrementOrderNumber(finalOrderNumber);
+
+        const totalPriority = await milestone.calculateTotalPriority(projectId);
+
+        const milestoneBudget = (currentProject.budget / totalPriority) * priority;
+
         const newMilestone = await milestone.create({
             project_id: projectId,
             name: name,
             description: description,
             due_date: due_date,
+            priority: priority,
+            budget: milestoneBudget,
             status: 1,
             order_number: finalOrderNumber,
         });
+
+        await milestone.updateBudgets(projectId);
 
         res.status(200).json({ code: "SUCCESS", message: 'Milestone created successfully', milestone: newMilestone });
     } catch (error) {
@@ -102,7 +125,7 @@ exports.updateMilestoneData = async (req, res, next) => {
 
         const currentMilestone = await milestone.get(id);
 
-        if (!currentMilestone) { 
+        if (!currentMilestone) {
             return res.status(404).json({ error: 'Milestone not found' });
         }
 
@@ -145,7 +168,7 @@ exports.completeMilestone = async (req, res, next) => {
         const project = new Project();
         const currentMilestone = await milestone.get(id);
 
-        if (!currentMilestone) { 
+        if (!currentMilestone) {
             return res.status(404).json({ error: 'Milestone not found' });
         }
 
@@ -177,18 +200,18 @@ exports.uploadMilestoneContent = async (req, res, next) => {
         const milestone = new Milestone();
         const project = new Project();
         const currentMilestone = await milestone.get(id);
-  
-        if (!currentMilestone) { 
+
+        if (!currentMilestone) {
             return res.status(404).json({ error: 'Milestone not found' });
         }
-  
+
         const currentProject = await project.get(currentMilestone.project_id);
         const job = await Project.getJobByProjectId(currentProject.id);
-  
+
         if (job.client_id != user_id) {
             return res.status(403).json({ error: 'Unauthorized' });
         }
-  
+
         // Upload the file to Google Cloud Storage
         const bucketName = 'job_lk'; // Replace with your bucket name
         const filename = `${id}-${req.file.originalname}`;
@@ -196,16 +219,16 @@ exports.uploadMilestoneContent = async (req, res, next) => {
             destination: filename,
             public: true,
         });
-  
+
         // Store the URL of the uploaded file in the database
         const fileUrl = `https://storage.googleapis.com/${bucketName}/${filename}`;
         await milestone.addContent(id, fileUrl);
-  
+
         res.status(200).json({ code: "SUCCESS", message: 'File uploaded successfully', url: fileUrl });
     } catch (error) {
         next(error);
     }
-  };
+};
 
 exports.completeProject = async (req, res, next) => {
     try {
@@ -252,7 +275,7 @@ exports.deleteMilestone = async (req, res, next) => {
         const orderNumber = await milestone.getOrderNumber(id);
         const currentMilestone = await milestone.get(id);
 
-        if (!currentMilestone) { 
+        if (!currentMilestone) {
             return res.status(404).json({ error: 'Milestone not found' });
         }
 
