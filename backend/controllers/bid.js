@@ -18,23 +18,24 @@ exports.submitBid = async (req, res, next) => {
       Job.findById(job_id),
       Bid.findByJobAndFreelancer(job_id, freelancer_id)
     ]);
-    const validationErrors = validate.validateBid(bid_value, supporting_content, job.budget);
-
+    
     if (!job) {
       return res.status(404).json({ code: ERROR_CODE, message: 'Job not found' });
     }
-
+    
     if (job.job_status != 1) {
       return res.status(400).json({ code: ERROR_CODE, message: 'Job is not open for bidding' });
     }
-
+    
     if (job.client_id === freelancer_id) {
       return res.status(400).json({ code: ERROR_CODE, message: 'You cannot bid on your own job' });
     }
-
+    
     if (alreadyBid) {
       return res.status(400).json({ code: ERROR_CODE, message: 'You have already bid on this job' });
     }
+
+    const validationErrors = validate.validateBid(bid_value, supporting_content, job.budget);
 
     if (validationErrors) {
       return res.status(400).json({ code: ERROR_CODE, message: validationErrors });
@@ -125,7 +126,6 @@ exports.updateBidStatus = async (req, res, next) => {
         Job.updateFreelancerIdAndStatus(currentBid.job_id, currentBid.freelancer_id),
         createProjectAndMilestone(currentBid, job.deadline)
       ]);
-    } else {
       await Bid.updateStatus(bidId, status, new Date());
     }
 

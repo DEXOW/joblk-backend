@@ -25,6 +25,7 @@ class Bid extends Model {
   }
 
   async updateStatus(bidId, status, timestamp) {
+    console.log(status);
     const statusColumn = status === 2 ? 'accepted_at' : 'rejected_at';
     const query = `UPDATE bids SET status = ?, ${statusColumn} = ? WHERE id = ?`;
     return db.query(query, [status, timestamp, bidId]);

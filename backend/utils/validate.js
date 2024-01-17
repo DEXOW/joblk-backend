@@ -33,20 +33,16 @@ exports.validateBudget = (budget) => {
   return re.test(budget);
 };
 
-exports.validateBid = (bid_value, supporting_content, job_budget) => {
-  const errors = {};
+exports.validateBid = (bid_value, budget) => {
+  bid_value = Number(bid_value);
 
   if (!bid_value) {
-    errors.bid_value = 'Missing bid value';
+    return 'Missing bid value';
   } else if (isNaN(bid_value) || bid_value < 500) {
-    errors.bid_value = 'Invalid bid value';
-  } else if (bid_value > 1.5 * job_budget) {
-    errors.bid_value = 'Bidding value is too high';
+    return 'Invalid bid value';
+  } else if (bid_value > budget*1.5) {
+    return 'Bid value too high';
   }
 
-  if (supporting_content && typeof supporting_content !== 'string') {
-    errors.supporting_content = 'Supporting content must be a string';
-  }
-
-  return Object.keys(errors).length > 0 ? errors : null;
+  return '';
 };

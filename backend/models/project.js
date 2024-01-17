@@ -9,7 +9,7 @@ module.exports = class Message extends Model {
     static async getProjectsByUserId(userId) {
         return new Promise((resolve, reject) => {
             const sql = `
-            SELECT projects.id, projects.job_id, projects.status
+            SELECT projects.id, projects.job_id, projects.status, jobs.*
             FROM projects 
             JOIN jobs ON projects.job_id = jobs.id 
             WHERE jobs.client_id = ? OR jobs.freelancer_id = ?
