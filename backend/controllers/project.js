@@ -24,6 +24,8 @@ exports.getProjectMilestones = async (req, res, next) => {
 
         const job = await Project.getJobByProjectId(projectId);
         if (job.client_id != userId) {
+            console.log(job.client_id);
+            console.log(userId);
             return res.status(403).json({ error: 'Unauthorized' });
         }
 
