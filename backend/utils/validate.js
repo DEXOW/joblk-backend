@@ -36,6 +36,9 @@ exports.validateBudget = (budget) => {
 exports.validateBid = (bid_value, budget) => {
   bid_value = Number(bid_value);
 
+  console.log(`Bid Value: ${bid_value}`);
+  console.log(`Budget: ${budget}`);
+
   if (!bid_value) {
     return 'Missing bid value';
   } else if (isNaN(bid_value) || bid_value < 500) {

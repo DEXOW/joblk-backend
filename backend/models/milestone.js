@@ -143,4 +143,17 @@ module.exports = class Milestone extends Model {
       });
     })
   }
+
+  async addContent(id, content) {
+    return new Promise((resolve, reject) => {
+        const sql = `UPDATE milestones SET content = ? WHERE id = ?`;
+        db.query(sql, [content, id], (err, results) => {
+            if (err) {
+                reject(err);
+                return;
+            }
+            resolve(results);
+        });
+    });
+ }
 };

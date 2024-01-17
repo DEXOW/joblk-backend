@@ -35,7 +35,7 @@ exports.submitBid = async (req, res, next) => {
       return res.status(400).json({ code: ERROR_CODE, message: 'You have already bid on this job' });
     }
 
-    const validationErrors = validate.validateBid(bid_value, supporting_content, job.budget);
+    const validationErrors = validate.validateBid(bid_value, job.budget);
 
     if (validationErrors) {
       return res.status(400).json({ code: ERROR_CODE, message: validationErrors });
@@ -123,6 +123,7 @@ exports.updateBidStatus = async (req, res, next) => {
 
     if (status == 2) {
       await Promise.all([
+        Bid.deleteAllExcept(bidId),
         Job.updateFreelancerIdAndStatus(currentBid.job_id, currentBid.freelancer_id),
         createProjectAndMilestone(currentBid, job.deadline)
       ]);
@@ -136,7 +137,7 @@ exports.updateBidStatus = async (req, res, next) => {
 };
 
 async function createProjectAndMilestone(currentBid, deadline) {
-  const project = await new Project().create({ job_id: currentBid.job_id, status: 1 });
+  const project = await new Project().create({ job_id: currentBid.job_id, status: 1, budget: currentBid.bid_value });
   await new Milestone().create({
     project_id: project,
     name: 'Final Milestone',
