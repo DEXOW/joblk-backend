@@ -7,7 +7,7 @@ const storage = new Storage({ keyFilename: './path-to-your-keyfile.json' });
 exports.getMyProjects = async (req, res, next) => {
     try {
         const user_id = req.user.id;
-        const { user_type } = req.body;
+        const user_type = req.params.user_type;
         var bids;
 
         if (!user_type) {
@@ -21,7 +21,7 @@ exports.getMyProjects = async (req, res, next) => {
         } else {
             return res.status(404).json({ error: 'Invalid user type' });
         }
-        
+
         res.json(bids);
     } catch (error) {
         next(error);
@@ -41,8 +41,6 @@ exports.getProjectMilestones = async (req, res, next) => {
 
         const job = await Project.getJobByProjectId(projectId);
         if (job.client_id != userId) {
-            console.log(job.client_id);
-            console.log(userId);
             return res.status(403).json({ error: 'Unauthorized' });
         }
 
@@ -119,7 +117,7 @@ exports.updateMilestoneData = async (req, res, next) => {
     try {
         const { id } = req.params;
         const user_id = req.user.id;
-        const { name, description, due_date } = req.body;
+        const { name, description, due_date, priority } = req.body;
         const milestone = new Milestone();
         const project = new Project();
 
@@ -151,9 +149,18 @@ exports.updateMilestoneData = async (req, res, next) => {
         if (name !== undefined) updateData.name = name;
         if (description !== undefined) updateData.description = description;
         if (due_date !== undefined) updateData.due_date = due_date;
+        if (priority !== undefined) {
+            updateData.priority = priority;
+            const totalPriority = await milestone.calculateTotalPriority(currentMilestone.project_id);
+            updateData.budget = (currentProject.budget / totalPriority) * priority;
+        }
         updateData.updated_at = new Date();
 
         await milestone.update(id, updateData);
+
+        if (priority !== undefined) {
+            await milestone.updateBudgets(currentMilestone.project_id);
+        }
 
         res.status(200).json({ code: "SUCCESS", message: 'Milestone updated successfully' });
     } catch (error) {
@@ -292,6 +299,8 @@ exports.deleteMilestone = async (req, res, next) => {
 
         await milestone.delete(id);
         await milestone.decrementOrderNumbers(orderNumber);
+        await milestone.updateBudgets(currentMilestone.project_id);
+
         res.status(200).json({ code: "SUCCESS", message: 'Milestone deleted successfully' });
     } catch (error) {
         next(error);

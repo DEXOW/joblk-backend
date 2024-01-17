@@ -22,16 +22,20 @@ module.exports = class Milestone extends Model {
 
   async getDueDateOfFinalMilestone(projectId) {
     return new Promise((resolve, reject) => {
-      const sql = `SELECT due_date FROM milestones WHERE project_id = ? ORDER BY order_number DESC LIMIT 1`;
-      db.query(sql, [projectId], (err, results) => {
-        if (err) {
-          reject(err);
-          return;
-        }
-        resolve(results[0].due_date);
-      });
+        const sql = `SELECT due_date FROM milestones WHERE project_id = ? ORDER BY order_number DESC LIMIT 1`;
+        db.query(sql, [projectId], (err, results) => {
+            if (err) {
+                reject(err);
+                return;
+            }
+            if (results[0]) {
+                resolve(results[0].due_date);
+            } else {
+                resolve(null);
+            }
+        });
     });
-  }
+ }
 
   async getDueDateOfMostRecentMilestone(projectId) {
     return new Promise((resolve, reject) => {
