@@ -8,7 +8,7 @@ exports.getUser = (req, res) => {
   if (req.user.id) {
     user.get(req.user.id).then(result => {
       // Remove password from user object
-      const { id, password, ...userData } = result;
+      const { password, ...userData } = result;
       user.getAverageRating(req.user.id).then(averageRating => {
         userData.averageRating = averageRating;
         res.send(userData);

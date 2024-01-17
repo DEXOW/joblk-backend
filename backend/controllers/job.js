@@ -36,6 +36,20 @@ exports.createJob = (req, res) => {
     });
 };
 
+exports.getClientJobs = (req, res) => {
+  const job = new Job();
+  const clientId = req.params.id;
+
+  job.getAll()
+    .then((jobs) => {
+      res.send(jobs.filter(job => job.client_id == clientId));
+    })
+    .catch((err) => {
+      res.status(500).send({ message: 'Could not retrieve jobs', err });
+    });
+};
+
+
 exports.getJobs = (req, res) => {
   const job = new Job();
 
