@@ -143,7 +143,8 @@ async function createProjectAndMilestone(currentBid, deadline) {
     name: 'Final Milestone',
     description: 'This is the final milestone, submit your work here.',
     due_date: deadline,
-    status: 1,
+    priority: 5,
+    budget: currentBid.bid_value,
     order_number: 1,
   });
 }

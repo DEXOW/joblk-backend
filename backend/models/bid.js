@@ -95,7 +95,7 @@ class Bid extends Model {
     return bids;
   }
 
-  static async deleteAllExcept(bidId) {
+  async deleteAllExcept(bidId) {
     const bid = await this.findById(bidId);
     if (!bid) {
       throw new Error('Bid not found');
@@ -104,7 +104,7 @@ class Bid extends Model {
     const jobId = bid.job_id;
 
     return db.query(
-      'DELETE FROM bids WHERE job_id = $1 AND id != $2',
+      'DELETE FROM bids WHERE job_id = ? AND id != ?',
       [jobId, bidId]
     );
   }
