@@ -8,7 +8,8 @@ module.exports = class Milestone extends Model {
 
   async getMilestonesByProjectId(projectId) {
     return new Promise((resolve, reject) => {
-      const sql = `SELECT * FROM milestones WHERE project_id = ? ORDER BY order_number ASC`;
+      const sql = `SELECT id, project_id, name, description, due_date, status, order_number 
+      FROM milestones WHERE project_id = ? ORDER BY order_number ASC`;
       db.query(sql, [projectId], (err, results) => {
         if (err) {
           reject(err);
@@ -126,5 +127,20 @@ module.exports = class Milestone extends Model {
         resolve(results);
       });
     });
+  }
+
+  async getFinalMilestone(projectId) {
+    return new Promise((resolve, reject) => {
+      const sql = `
+        SELECT * FROM milestones WHERE project_id = ? AND order_number = (SELECT MAX(order_number) FROM milestones WHERE project_id = ?)
+    `;
+      db.query(sql, [projectId, projectId], (err, results) => {
+        if (err) {
+          reject(err);
+          return;
+        }
+        resolve(results[0]);
+      });
+    })
   }
 };
