@@ -32,6 +32,7 @@ exports.getProjectMilestones = async (req, res, next) => {
     try {
         const projectId = req.params.id;
         const userId = req.user.id;
+        const { user_type } = req.body;
         const project = new Project();
 
         const currentProject = await project.get(projectId);
@@ -40,7 +41,15 @@ exports.getProjectMilestones = async (req, res, next) => {
         }
 
         const job = await Project.getJobByProjectId(projectId);
-        if (job.client_id != userId) {
+        // if (job.freelancer_id != userId || job.client_id != userId) {
+        //     return res.status(403).json({ error: 'Unauthorized' });
+        // }
+
+        if(user_type === 'freelancer' && job.freelancer_id != userId) {
+            return res.status(403).json({ error: 'Unauthorized' });
+        }
+
+        if(user_type === 'client' && job.client_id != userId) {
             return res.status(403).json({ error: 'Unauthorized' });
         }
 
@@ -251,7 +260,7 @@ exports.updateProjectStatus = async (req, res, next) => {
         }
 
         const job = await Project.getJobByProjectId(currentProject.id);
-        if (job.client_id != user_id) {
+        if (job.freelancer_id != user_id || job.client_id != user_id) {
             return res.status(403).json({ error: 'Unauthorized' });
         }
 
@@ -287,6 +296,33 @@ exports.updateProjectStatus = async (req, res, next) => {
         await project.update(id, { status: status });
 
         res.status(200).json({ code: "SUCCESS", message: 'Project status updated successfully' });
+    } catch (error) {
+        next(error);
+    }
+};
+
+exports.updateProjectPaymentStatus = async (req, res, next) => {
+    try {
+        const { id } = req.params;
+        const user_id = req.user.id;
+        const { status } = req.body;
+        const project = new Project();
+        const milestone = new Milestone();
+        const currentProject = await project.get(id);
+
+        if (!currentProject) {
+            return res.status(404).json({ error: 'Project not found' });
+        }
+
+        const job = await Project.getJobByProjectId(currentProject.id);
+        if (job.freelancer_id != user_id || job.client_id != user_id) {
+            return res.status(403).json({ error: 'Unauthorized' });
+        }
+
+        if (status <= currentProject.status || status > 5) {
+            return res.status(400).json({ code: "ERROR", message: 'Invalid status' });
+        }
+
     } catch (error) {
         next(error);
     }
