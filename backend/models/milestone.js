@@ -213,16 +213,23 @@ module.exports = class Milestone extends Model {
   //     });
   //  }
 
-  async addContent(id, content) {
+  async addContent(milestone_id, links) {
     return new Promise((resolve, reject) => {
-      const sql = `UPDATE milestones SET content = ? WHERE id = ?`;
-      db.query(sql, [content, id], (err, results) => {
-        if (err) {
-          reject(err);
-          return;
-        }
-        resolve(results);
-      });
+        // Split the links string into an array of URLs
+        const urls = links.split(',');
+ 
+        // Convert the array of URLs back into a string
+        const linksString = urls.join(',');
+ 
+        // Insert the links into the milestone_content table
+        const sql = `INSERT INTO milestone_content (milestone_id, links) VALUES (?, ?)`;
+        db.query(sql, [milestone_id, linksString], (err, results) => {
+            if (err) {
+                reject(err);
+                return;
+            }
+            resolve(results);
+        });
     });
-  }
+ }
 };
