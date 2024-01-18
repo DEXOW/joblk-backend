@@ -340,6 +340,7 @@ exports.updateProjectPaymentStatus = async (req, res, next) => {
             return res.status(400).json({ code: "ERROR", message: 'Payment has already been completed' });
         }
 
+        await project.update(id, { status: status, payment_status: 2 });
         res.status(200).json({ code: "SUCCESS", message: 'Project status updated successfully' });
     } catch (error) {
         next(error);
