@@ -30,9 +30,8 @@ exports.getMyProjects = async (req, res, next) => {
 
 exports.getProjectMilestones = async (req, res, next) => {
     try {
-        const projectId = req.params.id;
         const userId = req.user.id;
-        const { user_type } = req.body;
+        const { projectId, user_type } = req.body;
         const project = new Project();
 
         const currentProject = await project.get(projectId);
@@ -41,15 +40,12 @@ exports.getProjectMilestones = async (req, res, next) => {
         }
 
         const job = await Project.getJobByProjectId(projectId);
-        // if (job.freelancer_id != userId || job.client_id != userId) {
-        //     return res.status(403).json({ error: 'Unauthorized' });
-        // }
 
-        if(user_type === 'freelancer' && job.freelancer_id != userId) {
+        if (user_type === 'freelancer' && job.freelancer_id != userId) {
             return res.status(403).json({ error: 'Unauthorized' });
         }
 
-        if(user_type === 'client' && job.client_id != userId) {
+        if (user_type === 'client' && job.client_id != userId) {
             return res.status(403).json({ error: 'Unauthorized' });
         }
 
@@ -61,6 +57,59 @@ exports.getProjectMilestones = async (req, res, next) => {
         next(error);
     }
 };
+
+exports.getProjectClientMilestones = async (req, res, next) => {
+    try {
+        const projectId = req.params.id;
+        const userId = req.user.id;
+        const project = new Project();
+
+        const currentProject = await project.get(projectId);
+        if (!currentProject) {
+            return res.status(404).json({ error: 'Project not found' });
+        }
+
+        const job = await Project.getJobByProjectId(projectId);
+
+        if (job.client_id != userId) {
+            return res.status(403).json({ error: 'Unauthorized' });
+        }
+
+        const milestone = new Milestone();
+        const milestones = await milestone.getMilestonesByProjectId(projectId);
+
+        res.json(milestones);
+    } catch (error) {
+        next(error);
+    }
+};
+
+exports.getProjectFreelancerMilestones = async (req, res, next) => {
+    try {
+        const projectId = req.params.id;
+        const userId = req.user.id;
+        const project = new Project();
+
+        const currentProject = await project.get(projectId);
+        if (!currentProject) {
+            return res.status(404).json({ error: 'Project not found' });
+        }
+
+        const job = await Project.getJobByProjectId(projectId);
+
+        if (job.freelancer_id != userId) {
+            return res.status(403).json({ error: 'Unauthorized' });
+        }
+
+        const milestone = new Milestone();
+        const milestones = await milestone.getMilestonesByProjectId(projectId);
+
+        res.json(milestones);
+    } catch (error) {
+        next(error);
+    }
+};
+
 
 exports.createMilestone = async (req, res, next) => {
     try {
@@ -319,8 +368,16 @@ exports.updateProjectPaymentStatus = async (req, res, next) => {
             return res.status(403).json({ error: 'Unauthorized' });
         }
 
-        if (status <= currentProject.status || status > 5) {
+        if (status != 2) {
             return res.status(400).json({ code: "ERROR", message: 'Invalid status' });
+        }
+
+        if (currentProject.payment_status == 2) {
+            return res.status(400).json({ code: "ERROR", message: 'Payment has already been completed' });
+        }
+
+        if (currentProject.status != 3) {
+
         }
 
     } catch (error) {
