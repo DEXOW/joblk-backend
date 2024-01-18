@@ -290,10 +290,6 @@ exports.updateProjectStatus = async (req, res, next) => {
             return res.status(400).json({ code: "ERROR", message: 'Project has been completed' });
         }
 
-        if (status != currentProject.status + 1) {
-            return res.status(400).json({ code: "ERROR", message: 'Too High' });
-        }
-
         if (status == 4 && currentProject.payment_status != 2) {
             return res.status(400).json({ code: "ERROR", message: 'Payment must be completed before moving to active status' });
         }
