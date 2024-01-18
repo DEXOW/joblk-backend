@@ -204,36 +204,36 @@ exports.uploadMilestoneContent = async (req, res, next) => {
         const milestone = new Milestone();
         const project = new Project();
         const currentMilestone = await milestone.get(id);
- 
+
         if (!currentMilestone) {
             return res.status(404).json({ error: 'Milestone not found' });
         }
- 
+
         const currentProject = await project.get(currentMilestone.project_id);
         const job = await Project.getJobByProjectId(currentProject.id);
- 
+
         if (job.client_id != id) {
             return res.status(403).json({ error: 'Unauthorized' });
         }
- 
+
         for (let link of links) {
             try {
                 const response = await axios.head(link);
                 if (response.status !== 200) {
-                   throw new Error(`Link ${link} is invalid.`);
+                    throw new Error(`Link ${link} is invalid.`);
                 }
             } catch (error) {
                 return res.status(400).json({ error: error.message });
             }
         }
- 
+
         await milestone.addContent(id, JSON.stringify(links));
- 
+
         res.status(200).json({ code: "SUCCESS", message: 'Links uploaded successfully' });
     } catch (error) {
         next(error);
     }
- };
+};
 
 exports.completeMilestone = async (req, res, next) => {
     try {
@@ -267,43 +267,6 @@ exports.completeMilestone = async (req, res, next) => {
     }
 }
 
-// exports.uploadMilestoneContent = async (req, res, next) => {
-//     try {
-//         const { id } = req.params;
-//         const user_id = req.user.id;
-//         const milestone = new Milestone();
-//         const project = new Project();
-//         const currentMilestone = await milestone.get(id);
-
-//         if (!currentMilestone) {
-//             return res.status(404).json({ error: 'Milestone not found' });
-//         }
-
-//         const currentProject = await project.get(currentMilestone.project_id);
-//         const job = await Project.getJobByProjectId(currentProject.id);
-
-//         if (job.client_id != user_id) {
-//             return res.status(403).json({ error: 'Unauthorized' });
-//         }
-
-//         // Upload the file to Google Cloud Storage
-//         const bucketName = 'job_lk'; // Replace with your bucket name
-//         const filename = `${id}-${req.file.originalname}`;
-//         await storage.bucket(bucketName).upload(req.file.path, {
-//             destination: filename,
-//             public: true,
-//         });
-
-//         // Store the URL of the uploaded file in the database
-//         const fileUrl = `https://storage.googleapis.com/${bucketName}/${filename}`;
-//         await milestone.addContent(id, fileUrl);
-
-//         res.status(200).json({ code: "SUCCESS", message: 'File uploaded successfully', url: fileUrl });
-//     } catch (error) {
-//         next(error);
-//     }
-// };
-
 exports.updateProjectStatus = async (req, res, next) => {
     try {
         const { id } = req.params;
@@ -325,10 +288,6 @@ exports.updateProjectStatus = async (req, res, next) => {
 
         if (currentProject.status == 5) {
             return res.status(400).json({ code: "ERROR", message: 'Project has been completed' });
-        }
-
-        if (status <= currentProject.status || status > 5) {
-            return res.status(400).json({ code: "ERROR", message: 'Invalid status' });
         }
 
         if (status != currentProject.status + 1) {
@@ -373,12 +332,7 @@ exports.updateProjectPaymentStatus = async (req, res, next) => {
             return res.status(404).json({ error: 'Project not found' });
         }
 
-        const job = await Project.getJobByProjectId(currentProject.id);
-        if (job.freelancer_id != user_id || job.client_id != user_id) {
-            return res.status(403).json({ error: 'Unauthorized' });
-        }
-
-        if (status != 2) {
+        if (status != 4) {
             return res.status(400).json({ code: "ERROR", message: 'Invalid status' });
         }
 
@@ -386,10 +340,7 @@ exports.updateProjectPaymentStatus = async (req, res, next) => {
             return res.status(400).json({ code: "ERROR", message: 'Payment has already been completed' });
         }
 
-        if (currentProject.status != 3) {
-
-        }
-
+        res.status(200).json({ code: "SUCCESS", message: 'Project status updated successfully' });
     } catch (error) {
         next(error);
     }

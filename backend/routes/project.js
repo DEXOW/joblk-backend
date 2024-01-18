@@ -9,7 +9,7 @@ router.get('/milestones/client/:id', middleware.auth, projectControllers.getProj
 router.get('/milestones/freelancer/:id', middleware.auth, projectControllers.getProjectFreelancerMilestones);
 router.post('/:id', middleware.auth, projectControllers.createMilestone);
 router.put('/project/:id', middleware.auth, projectControllers.updateProjectStatus);
-router.put('/project_payment/:id', middleware.auth, projectControllers.updateProjectStatus);
+router.put('/project_payment/:id', middleware.auth, projectControllers.updateProjectPaymentStatus);
 router.put('/upload/:id', middleware.auth, projectControllers.uploadMilestoneContent);
 router.put('/:id', middleware.auth, projectControllers.updateMilestoneData);
 router.put('/', middleware.auth, projectControllers.completeMilestone);

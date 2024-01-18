@@ -42,6 +42,21 @@ module.exports = class Message extends Model {
         })
     }
 
+    static async updateProjectStatusAndPaymentStatus(id, status, payment_status) {
+        return new Promise((resolve, reject) => {
+            const sql = `
+            UPDATE projects SET status = ?, payment_status = ? WHERE id = ?
+        `;
+            db.query(sql, [status, payment_status, id], (err, results) => {
+                if (err) {
+                    reject(err);
+                    return;
+                }
+                resolve(results);
+            });
+        })
+    }
+
     static async getJobByProjectId(projectId) {
         return new Promise((resolve, reject) => {
             const sql = `
