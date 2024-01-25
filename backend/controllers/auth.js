@@ -23,7 +23,7 @@ exports.register = (req, res) => {
   }
 
   //Get credentials from request body
-  const { username, email, password } = req.body;
+  const { username, email, password, mode_preference } = req.body;
 
   // Check if credentials are missing
   if (!username || !email || !password) {
@@ -63,7 +63,7 @@ exports.register = (req, res) => {
     }
 
     // Insert user into database
-    db.query('INSERT INTO users (username, email, password) VALUES (?, ?, ?)', [username, email, md5(password)], (err, results) => {
+    db.query('INSERT INTO users (username, email, password, mode_preference) VALUES (?, ?, ?, ?)', [username, email, md5(password), mode_preference], (err, results) => {
       if (err) {
         res.status(500).send({ code:"ERR-FAIL", message: 'Could not register user' });
         return;

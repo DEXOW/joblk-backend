@@ -40,7 +40,7 @@ exports.getAllUsers = (req, res) => {
 };
 
 exports.updateUser = (req, res) => {
-  const { username, full_name, email, city, province, country, avatar } = req.body;
+  const { username, full_name, email, city, province, country, avatar, mode_preference } = req.body;
   
   const updatedFields = {};
   const user = new User();
@@ -73,6 +73,10 @@ exports.updateUser = (req, res) => {
   if (avatar) {
     updatedFields.avatar = avatar;
   }
+
+  if (mode_preference) {
+    updatedFields.mode_preference = mode_preference;
+  } 
 
   if (Object.keys(updatedFields).length === 0) {
     res.status(400).send({ code:"ERR-MISSING-BODY", message: 'No fields to update' });
