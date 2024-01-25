@@ -1,4 +1,5 @@
 const User = require('../models/user');
+const uploadImage = require('../utils/upload_image');
 const md5 = require('md5');
 
 const validate = require('../utils/validate');
@@ -40,7 +41,7 @@ exports.getAllUsers = (req, res) => {
 };
 
 exports.updateUser = (req, res) => {
-  const { username, full_name, email, city, province, country, avatar, mode_preference } = req.body;
+  const { username, full_name, email, city, province, country, mode_preference } = req.body;
   
   const updatedFields = {};
   const user = new User();
@@ -68,10 +69,6 @@ exports.updateUser = (req, res) => {
 
   if (country) {
     updatedFields.country = country;
-  }
-
-  if (avatar) {
-    updatedFields.avatar = avatar;
   }
 
   if (mode_preference) {
@@ -165,6 +162,40 @@ exports.updatePassword = (req, res) => {
         res.send({ message: 'Password updated' });
       } else {
         res.send({ message: 'No changes made' });
+      }
+    })
+    .catch(err => {
+      res.send(err);
+    });
+}
+
+exports.updateAvatar = async (req, res) => {
+  const avatar = req.files[0];
+  const user = new User();
+  
+  if (!avatar) {
+    res.status(400).send({ code:"ERR-MISSING-BODY", message: 'Missing file' });
+    return;
+  }
+
+  let avatarUrl = await uploadImage(avatar);
+  
+  user.update(req.user.id, { avatar: avatarUrl })
+    .then(result => {
+      if (result.changedRows > 0) {
+        user.get(req.user.id)
+          .then(result => {
+            req.user = result;
+
+            // Remove password from user object
+            const { password, ...user } = result;
+            res.send(user);
+          })
+          .catch(err => {
+            res.send(err);
+          });
+      } else {
+        res.status(200).send({ code: "SUCCESS", message: 'No changes made' });
       }
     })
     .catch(err => {

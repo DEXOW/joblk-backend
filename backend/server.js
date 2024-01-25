@@ -1,7 +1,7 @@
 require("dotenv").config();
 
 const express = require("express");
-const session = require("express-session");
+const multer = require("multer");
 const cookieParser = require("cookie-parser");
 const cors = require("cors");
 const Rollbar = require("rollbar");
@@ -43,7 +43,15 @@ const corsOptions = {
     optionSuccessStatus: 200
 }
 
+const multerMid = multer({
+    storage: multer.memoryStorage(),
+    limits: {
+      fileSize: 5 * 1024 * 1024,
+    },
+});
+
 app.use(cors(corsOptions));
+app.use(multerMid.any());
 app.use(express.json());
 app.use(cookieParser());
 

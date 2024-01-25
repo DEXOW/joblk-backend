@@ -9,6 +9,7 @@ router.get('/', middleware.auth, controllers.getUser);
 router.get('/all', middleware.auth, controllers.getAllUsers);
 router.put('/', middleware.auth, controllers.updateUser);
 router.delete('/', middleware.auth, controllers.deleteUser);
+router.post('/avatar', middleware.auth, controllers.updateAvatar);
 
 router.put('/password', middleware.auth, controllers.updatePassword);
 
