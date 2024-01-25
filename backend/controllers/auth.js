@@ -71,7 +71,6 @@ exports.register = (req, res) => {
       res.send({ code:"SUCCESS", message: 'User registered successfully' });
     });
   });
-
 }
 
 exports.login = (req, res) => {
