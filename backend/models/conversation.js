@@ -48,12 +48,21 @@ module.exports = class Conversation extends Model {
     getConversationsByUserId(id) {
         return new Promise((resolve, reject) => {
             const query = `
-        SELECT c.id, c.user_one_id, c.user_two_id, c.created_at, c.updated_at, u1.username AS user_one_username, u2.username AS user_two_username
-        FROM ${this.table} c
-        JOIN users u1 ON c.user_one_id = u1.id
-        JOIN users u2 ON c.user_two_id = u2.id
-        WHERE c.user_one_id = ? OR c.user_two_id = ?
-      `;
+                SELECT c.id, c.user_one_id, c.user_two_id, c.created_at, c.updated_at, u1.username AS user_one_username, u2.username AS user_two_username, m.message_content AS last_message
+                FROM ${this.table} c
+                JOIN users u1 ON c.user_one_id = u1.id
+                JOIN users u2 ON c.user_two_id = u2.id
+                LEFT JOIN (
+                    SELECT message_content, conversation_id
+                    FROM messages
+                    WHERE id IN (
+                        SELECT MAX(id)
+                        FROM messages
+                        GROUP BY conversation_id
+                    )
+                ) m ON m.conversation_id = c.id
+                WHERE c.user_one_id = ? OR c.user_two_id = ?
+            `;
             db.query(query, [id, id], (err, results) => {
                 if (err) {
                     reject(err);
