@@ -100,12 +100,16 @@ module.exports = class User extends model {
               return;
             }
 
-            const user = userResults[0];
-            user.social_links = JSON.parse(userResults[0].social_links);
-            user.projects = JSON.parse(projectsResults[0].projects);
-            user.reviews = JSON.parse(reviewsResults[0].reviews);
+            if (userResults[0]) {
+              const user = userResults[0];
+              user.social_links = JSON.parse(userResults[0].social_links);
+              user.projects = projectsResults[0] ? JSON.parse(projectsResults[0].projects) : [];
+              user.reviews = reviewsResults[0] ? JSON.parse(reviewsResults[0].reviews) : [];
 
-            resolve(user);
+              resolve(user);
+            } else {
+              reject(new Error('User not found'));
+            }
           });
         });
       });
