@@ -33,6 +33,11 @@ exports.validateBudget = (budget) => {
   return re.test(budget);
 };
 
+exports.validateLink = (link) => {
+  const re = /^(http|https):\/\/[^ "]+$/;
+  return re.test(link);
+};
+
 exports.validateBid = (bid_value, budget) => {
   bid_value = Number(bid_value);
 
