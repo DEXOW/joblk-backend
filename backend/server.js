@@ -1,7 +1,7 @@
 require("dotenv").config();
 
 const express = require("express");
-const session = require("express-session");
+const multer = require("multer");
 const cookieParser = require("cookie-parser");
 const cors = require("cors");
 const Rollbar = require("rollbar");
@@ -32,6 +32,7 @@ const portfolioRouter = require("./routes/portfolio");
 const jobRouter = require("./routes/job");
 const bidRouter = require("./routes/bid");
 const projectRouter = require("./routes/project");
+const paymentRouter = require("./routes/payment");
 const conversationRouter = require("./routes/conversation");
 const messageRouter = require("./routes/message");
 const reviewRouter = require("./routes/review");
@@ -42,7 +43,15 @@ const corsOptions = {
     optionSuccessStatus: 200
 }
 
+const multerMid = multer({
+    storage: multer.memoryStorage(),
+    limits: {
+      fileSize: 5 * 1024 * 1024,
+    },
+});
+
 app.use(cors(corsOptions));
+app.use(multerMid.any());
 app.use(express.json());
 app.use(cookieParser());
 
@@ -53,6 +62,7 @@ app.use("/portfolio", middleware.auth_request, portfolioRouter);
 app.use("/job", middleware.auth_request, jobRouter);
 app.use("/bid", middleware.auth_request, bidRouter);
 app.use("/project", middleware.auth_request, projectRouter);
+app.use("/payment", paymentRouter);
 app.use("/conversation", middleware.auth_request, conversationRouter);
 app.use("/message", middleware.auth_request, messageRouter);
 app.use("/review", middleware.auth_request, reviewRouter);

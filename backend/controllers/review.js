@@ -25,7 +25,6 @@ exports.updateReview = (req, res) => {
     const review = new Review();
     const reviewId = req.params.id;
     const reviewData = req.body;
-    // Check user owns the review
     if (req.user.id !== reviewData.reviewer_id) {
         res.status(401).send({ message: 'Unauthorized' });
         return;

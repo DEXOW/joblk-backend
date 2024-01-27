@@ -25,6 +25,7 @@ class Bid extends Model {
   }
 
   async updateStatus(bidId, status, timestamp) {
+    console.log(status);
     const statusColumn = status === 2 ? 'accepted_at' : 'rejected_at';
     const query = `UPDATE bids SET status = ?, ${statusColumn} = ? WHERE id = ?`;
     return db.query(query, [status, timestamp, bidId]);
@@ -92,6 +93,20 @@ class Bid extends Model {
     });
   
     return bids;
+  }
+
+  async deleteAllExcept(bidId) {
+    const bid = await this.findById(bidId);
+    if (!bid) {
+      throw new Error('Bid not found');
+    }
+
+    const jobId = bid.job_id;
+
+    return db.query(
+      'DELETE FROM bids WHERE job_id = ? AND id != ?',
+      [jobId, bidId]
+    );
   }
 
   calculateBiddingScore = (bidValue, originalBudget) => 1 - (bidValue / originalBudget);
