@@ -104,28 +104,63 @@ exports.updateUser = (req, res) => {
     });
 }
 
+exports.getSocials = (req, res) => {
+  db.query('SELECT * FROM socials WHERE user_id = ?', [req.user.id], (err, results) => {
+    if (err) {
+      res.status(500).send({ code: "ERR-500", message: err });
+      return;
+    }
+    if (results.length === 0) {
+      res.status(404).send({ code: "ERR-404", message: 'Socials not found' });
+      return;
+    }
+    const { id, user_id, ...socials } = results[0];
+    res.send(socials);
+  });
+}
+
 exports.updateSocials = (req, res) => {
   const { instagram, linkedIn, github, facebook, x } = req.body;
 
   const updatedFields = {};
 
   if (instagram) {
+    if (!validate.validateLink(instagram)) {
+      res.status(400).send({ code:"ERR-INVALID-CRED", message: 'Invalid instagram link' });
+      return;
+    }
     updatedFields.instagram = instagram;
   }
 
   if (linkedIn) {
+    if (!validate.validateLink(linkedIn)) {
+      res.status(400).send({ code:"ERR-INVALID-CRED", message: 'Invalid linkedIn link' });
+      return;
+    }
     updatedFields.linkedIn = linkedIn;
   }
 
   if (github) {
+    if (!validate.validateLink(github)) {
+      res.status(400).send({ code:"ERR-INVALID-CRED", message: 'Invalid github link' });
+      return;
+    }
     updatedFields.github = github;
   }
 
   if (facebook) {
+    if (!validate.validateLink(facebook)) {
+      res.status(400).send({ code:"ERR-INVALID-CRED", message: 'Invalid facebook link' });
+      return;
+    }
     updatedFields.facebook = facebook;
   }
 
   if (x) {
+    if (!validate.validateLink(x)) {
+      res.status(400).send({ code:"ERR-INVALID-CRED", message: 'Invalid x link' });
+      return;
+    }
     updatedFields.x = x;
   }
 

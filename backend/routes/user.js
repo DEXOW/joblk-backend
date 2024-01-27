@@ -10,6 +10,7 @@ router.get('/all', middleware.auth, controllers.getAllUsers);
 router.put('/', middleware.auth, controllers.updateUser);
 router.delete('/', middleware.auth, controllers.deleteUser);
 router.post('/avatar', middleware.auth, controllers.updateAvatar);
+router.get('/socials', middleware.auth, controllers.getSocials);
 router.put('/socials', middleware.auth, controllers.updateSocials);
 
 router.put('/password', middleware.auth, controllers.updatePassword);
