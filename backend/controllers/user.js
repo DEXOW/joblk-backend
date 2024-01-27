@@ -18,11 +18,25 @@ exports.getUser = (req, res) => {
         res.status(500).send({ message: 'Could not retrieve average rating', err });
       });
     })
-    .catch(err => {
-      res.json(err);
-    });
+      .catch(err => {
+        res.json(err);
+      });
   }
 }
+
+exports.getUserDetails = (req, res) => {
+  const user = new User();
+  const userId = req.params.id;
+
+  user.getUserDetails(userId)
+    .then(results => {
+      res.send(results);
+    })
+    .catch(error => {
+      res.status(500).send({ message: error.message });
+    });
+};
+
 exports.getAllUsers = (req, res) => {
   const user = new User();
 
@@ -43,7 +57,7 @@ exports.getAllUsers = (req, res) => {
 
 exports.updateUser = (req, res) => {
   const { username, full_name, email, city, province, country, mode_preference } = req.body;
-  
+
   const updatedFields = {};
   const user = new User();
 
@@ -74,10 +88,10 @@ exports.updateUser = (req, res) => {
 
   if (mode_preference) {
     updatedFields.mode_preference = mode_preference;
-  } 
+  }
 
   if (Object.keys(updatedFields).length === 0) {
-    res.status(400).send({ code:"ERR-MISSING-BODY", message: 'No fields to update' });
+    res.status(400).send({ code: "ERR-MISSING-BODY", message: 'No fields to update' });
     return;
   }
 
@@ -126,7 +140,7 @@ exports.updateSocials = (req, res) => {
 
   if (instagram) {
     if (!validate.validateLink(instagram)) {
-      res.status(400).send({ code:"ERR-INVALID-CRED", message: 'Invalid instagram link' });
+      res.status(400).send({ code: "ERR-INVALID-CRED", message: 'Invalid instagram link' });
       return;
     }
     updatedFields.instagram = instagram;
@@ -134,7 +148,7 @@ exports.updateSocials = (req, res) => {
 
   if (linkedIn) {
     if (!validate.validateLink(linkedIn)) {
-      res.status(400).send({ code:"ERR-INVALID-CRED", message: 'Invalid linkedIn link' });
+      res.status(400).send({ code: "ERR-INVALID-CRED", message: 'Invalid linkedIn link' });
       return;
     }
     updatedFields.linkedIn = linkedIn;
@@ -142,7 +156,7 @@ exports.updateSocials = (req, res) => {
 
   if (github) {
     if (!validate.validateLink(github)) {
-      res.status(400).send({ code:"ERR-INVALID-CRED", message: 'Invalid github link' });
+      res.status(400).send({ code: "ERR-INVALID-CRED", message: 'Invalid github link' });
       return;
     }
     updatedFields.github = github;
@@ -150,7 +164,7 @@ exports.updateSocials = (req, res) => {
 
   if (facebook) {
     if (!validate.validateLink(facebook)) {
-      res.status(400).send({ code:"ERR-INVALID-CRED", message: 'Invalid facebook link' });
+      res.status(400).send({ code: "ERR-INVALID-CRED", message: 'Invalid facebook link' });
       return;
     }
     updatedFields.facebook = facebook;
@@ -158,14 +172,14 @@ exports.updateSocials = (req, res) => {
 
   if (x) {
     if (!validate.validateLink(x)) {
-      res.status(400).send({ code:"ERR-INVALID-CRED", message: 'Invalid x link' });
+      res.status(400).send({ code: "ERR-INVALID-CRED", message: 'Invalid x link' });
       return;
     }
     updatedFields.x = x;
   }
 
   if (Object.keys(updatedFields).length === 0) {
-    res.status(400).send({ code:"ERR-MISSING-BODY", message: 'No fields to update' });
+    res.status(400).send({ code: "ERR-MISSING-BODY", message: 'No fields to update' });
     return;
   }
 
@@ -201,16 +215,16 @@ exports.updateSocials = (req, res) => {
 
 exports.deleteUser = (req, res) => {
   const { password } = req.body;
-  
+
   const user = new User();
 
   if (!password) {
-    res.status(400).send({ code:"ERR-MISSING-BODY", message: 'Missing credentials' });
+    res.status(400).send({ code: "ERR-MISSING-BODY", message: 'Missing credentials' });
     return;
   }
 
   if (md5(password) !== req.user.password) {
-    res.status(401).send({ code:"ERR-INVALID-CRED", message: 'Invalid credentials' });
+    res.status(401).send({ code: "ERR-INVALID-CRED", message: 'Invalid credentials' });
     return;
   }
 
@@ -237,22 +251,22 @@ exports.updatePassword = async (req, res) => {
   });
 
   if (!currentPass || !newPass || !confPass) {
-    res.status(400).send({ code:"ERR-MISSING-BODY", message: 'Missing credentials' });
+    res.status(400).send({ code: "ERR-MISSING-BODY", message: 'Missing credentials' });
     return;
   }
 
   if (md5(currentPass) !== userData.password) {
-    res.status(401).send({ code:"ERR-INVALID-CRED", message: 'Invalid password' });
+    res.status(401).send({ code: "ERR-INVALID-CRED", message: 'Invalid password' });
     return;
   }
 
   if (md5(newPass) === userData.password) {
-    res.status(400).send({ code:"ERR-INVALID-CRED", message: 'New password cannot be the same as the old one' });
+    res.status(400).send({ code: "ERR-INVALID-CRED", message: 'New password cannot be the same as the old one' });
     return;
   }
 
   if (newPass !== confPass) {
-    res.status(400).send({ code:"ERR-INVALID-CRED", message: 'Passwords do not match' });
+    res.status(400).send({ code: "ERR-INVALID-CRED", message: 'Passwords do not match' });
     return;
   }
 
@@ -272,14 +286,14 @@ exports.updatePassword = async (req, res) => {
 exports.updateAvatar = async (req, res) => {
   const avatar = req.files[0];
   const user = new User();
-  
+
   if (!avatar) {
-    res.status(400).send({ code:"ERR-MISSING-BODY", message: 'Missing file' });
+    res.status(400).send({ code: "ERR-MISSING-BODY", message: 'Missing file' });
     return;
   }
 
   let avatarUrl = await uploadImage(avatar);
-  
+
   user.update(req.user.id, { avatar: avatarUrl })
     .then(result => {
       if (result.changedRows > 0) {
