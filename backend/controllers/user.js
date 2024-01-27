@@ -1,3 +1,4 @@
+const db = require('../utils/db_connection');
 const User = require('../models/user');
 const uploadImage = require('../utils/upload_image');
 const md5 = require('md5');
@@ -103,6 +104,66 @@ exports.updateUser = (req, res) => {
     });
 }
 
+exports.updateSocials = (req, res) => {
+  const { instagram, linkedIn, github, facebook, x } = req.body;
+
+  const updatedFields = {};
+
+  if (instagram) {
+    updatedFields.instagram = instagram;
+  }
+
+  if (linkedIn) {
+    updatedFields.linkedIn = linkedIn;
+  }
+
+  if (github) {
+    updatedFields.github = github;
+  }
+
+  if (facebook) {
+    updatedFields.facebook = facebook;
+  }
+
+  if (x) {
+    updatedFields.x = x;
+  }
+
+  if (Object.keys(updatedFields).length === 0) {
+    res.status(400).send({ code:"ERR-MISSING-BODY", message: 'No fields to update' });
+    return;
+  }
+
+  db.query('SELECT * FROM socials WHERE user_id = ?', [req.user.id], (err, results) => {
+    if (err) {
+      res.status(500).send({ code: "ERR-500", message: err });
+      return;
+    }
+    if (results.length === 0) {
+      db.query('INSERT INTO socials SET ?', { user_id: req.user.id, ...updatedFields }, (err, results) => {
+        if (err) {
+          res.status(500).send({ code: "ERR-500", message: err });
+          return;
+        }
+        res.send({ message: 'Socials updated' });
+      });
+    } else {
+      db.query('UPDATE socials SET ? WHERE user_id = ?', [updatedFields, req.user.id], (err, results) => {
+        if (err) {
+          res.status(500).send({ code: "ERR-500", message: err });
+          return;
+        }
+        if (results.changedRows > 0) {
+          res.send({ message: 'Socials updated' });
+        } else {
+          res.send({ message: 'No changes made' });
+        }
+      });
+    }
+  });
+
+}
+
 exports.deleteUser = (req, res) => {
   const { password } = req.body;
   
@@ -131,21 +192,26 @@ exports.deleteUser = (req, res) => {
     });
 }
 
-exports.updatePassword = (req, res) => {
+exports.updatePassword = async (req, res) => {
   const { currentPass, newPass, confPass } = req.body;
   const user = new User();
+  let userData = null;
+
+  await user.get(req.user.id).then(result => {
+    userData = result;
+  });
 
   if (!currentPass || !newPass || !confPass) {
     res.status(400).send({ code:"ERR-MISSING-BODY", message: 'Missing credentials' });
     return;
   }
 
-  if (md5(currentPass) !== req.user.password) {
+  if (md5(currentPass) !== userData.password) {
     res.status(401).send({ code:"ERR-INVALID-CRED", message: 'Invalid password' });
     return;
   }
 
-  if (md5(newPass) === req.user.password) {
+  if (md5(newPass) === userData.password) {
     res.status(400).send({ code:"ERR-INVALID-CRED", message: 'New password cannot be the same as the old one' });
     return;
   }
@@ -158,8 +224,7 @@ exports.updatePassword = (req, res) => {
   user.update(req.user.id, { password: md5(newPass) })
     .then(result => {
       if (result.changedRows > 0) {
-        res.clearCookie('jwt').send({ code: "SUCCESS", message: 'Logged out successfully' });
-        res.send({ message: 'Password updated' });
+        res.clearCookie('jwt').send({ message: 'Password updated' });
       } else {
         res.send({ message: 'No changes made' });
       }
