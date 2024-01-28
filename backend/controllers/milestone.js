@@ -1,9 +1,5 @@
 const Milestone = require('../models/milestone');
 const Job = require('../models/job');
-const axios = require('axios');
-
-const { Storage } = require('@google-cloud/storage');
-const storage = new Storage({ keyFilename: './path-to-your-keyfile.json' });
 
 exports.createMilestone = async (req, res, next) => {
     try {
@@ -46,6 +42,27 @@ exports.createMilestone = async (req, res, next) => {
         });
 
         res.status(200).json({ code: "SUCCESS", message: 'Milestone created successfully' });
+    } catch (error) {
+        next(error);
+    }
+}
+
+exports.getJobMilestones = async (req, res, next) => {
+    try {
+        const userId = req.user.id;
+        const jobId = req.params.id;
+        const job = await Job.findById(userId);
+
+        if (job.client_id != userId) {
+            return res.status(404).json({ error: 'Job not found' });
+        }
+
+        let milestones = await new Milestone().findByJobId(jobId);
+        milestones = milestones.map(milestone => {
+            const { job_id, budget, payment_status, status, created_at, updated_at, ...everythingElse } = milestone;
+            return everythingElse;
+        });
+        res.status(200).send(milestones);
     } catch (error) {
         next(error);
     }

@@ -6,6 +6,19 @@ module.exports = class Milestone extends Model {
     super('milestones');
   }
 
+  async findByJobId(jobId) {
+    return new Promise((resolve, reject) => {
+      const sql = `SELECT * FROM milestones WHERE job_id = ? ORDER BY order_number ASC`;
+      db.query(sql, [jobId], (err, results) => {
+        if (err) {
+          reject(err);
+          return;
+        }
+        resolve(results);
+      });
+    });
+  }
+
   async getDueDateOfFinalMilestone(projectId) {
     return new Promise((resolve, reject) => {
         const sql = `SELECT due_date FROM milestones WHERE job_id = ? ORDER BY order_number DESC LIMIT 1`;
