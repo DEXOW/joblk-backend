@@ -8,7 +8,6 @@ const middleware = require('../middleware');
 router.post('/', middleware.auth, controller.createMilestone);
 router.get('/:id', middleware.auth, controller.getJobMilestones);
 router.get('/:id/bid', middleware.auth, controller.getJobMilestonesBudgetBid);
-
 // router.put('/:id', middleware.auth, projectControllers.updateMilestoneData);
 // router.put('/:id/upload', middleware.auth, projectControllers.uploadMilestoneContent);
 // router.put('/', middleware.auth, projectControllers.completeMilestone);

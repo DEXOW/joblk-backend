@@ -44,11 +44,10 @@ exports.createMilestone = async (req, res, next) => {
 
 exports.getJobMilestones = async (req, res, next) => {
     try {
-        const userId = req.user.id;
         const jobId = req.params.id;
-        const job = await Job.findById(userId);
+        const job = await Job.findById(jobId);
 
-        if (!job) {
+        if (job == null) {
             return res.status(404).json({ error: 'Job not found' });
         }
 
@@ -68,7 +67,7 @@ exports.getJobMilestonesBudgetBid = async (req, res, next) => {
         const userId = req.user.id;
         const jobId = req.params.id;
         const bid_value = req.body.bid_value;
-        const job = await Job.findById(userId);
+        const job = await Job.findById(jobId);
 
         if (!job) {
             return res.status(404).json({ error: 'Job not found' });
