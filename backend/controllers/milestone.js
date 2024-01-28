@@ -1,6 +1,7 @@
 const db = require('../utils/db_connection');
 const Milestone = require('../models/milestone');
 const Job = require('../models/job');
+const uploadFile = require('../utils/upload_image');
 
 exports.createMilestone = async (req, res, next) => {
     try {
@@ -85,6 +86,24 @@ exports.getJobMilestonesBudgetBid = async (req, res, next) => {
     } catch (error) {
         next(error);
     }
+}
+
+exports.getMilestoneContent = async (req, res, next) => {
+    try {
+        const milestone_id = req.params.id;
+        const currentMilestone = await Milestone.findById(milestone_id);
+
+        if (currentMilestone == null) {
+            return res.status(404).json({ error: 'Milestone not found' });
+        }
+
+        const milestoneContent = await Milestone.getMilestoneContent(milestone_id);
+
+        res.status(200).json(milestoneContent);
+    } catch (error) {
+        next(error);
+    }
+
 }
 
 exports.updateMilestone = async (req, res, next) => {
@@ -187,9 +206,7 @@ exports.completeMilestone = async (req, res, next) => {
 
 exports.uploadMilestoneContent = async (req, res, next) => {
     try {
-        const user_id = req.user.id;
         const { id } = req.params;
-        const { content } = req.body;
         const milestone = new Milestone();
         const currentMilestone = await milestone.get(id);
 
@@ -197,15 +214,42 @@ exports.uploadMilestoneContent = async (req, res, next) => {
             return res.status(404).json({ error: 'Milestone not found' });
         }
 
-        const job = await Job.findById(currentMilestone.job_id);
+        const file1 = req.files[0];
+        const file2 = req.files[1];
+        const file3 = req.files[2];
+        const file4 = req.files[3];
+        const file5 = req.files[4];
 
-        if (job.client_id != user_id) {
-            return res.status(403).json({ error: 'Unauthorized' });
+        const files = [file1, file2, file3, file4, file5];
+
+        for (let i = 0; i < files.length; i++) {
+            const file = files[i];
+            if (file) {
+                const uploadUrl = await uploadFile(file);
+                db.query('INSERT INTO milestone_content (milestone_id, upload_reference) VALUES (?, ?)', [id, uploadUrl], (err, results) => {
+                    if (err) {
+                        return res.status(500).json({ error: 'Internal server error' });
+                    }
+                });
+            }
         }
-
-        await milestone.updateContent(id, content);
-
-        res.status(200).json({ code: "SUCCESS", message: 'Milestone content uploaded successfully' });
+        let content = {};
+        if (file1) {
+            content.file1 = file1;
+        }
+        if (file2) {
+            content.file2 = file2;
+        }
+        if (file3) {
+            content.file3 = file3;
+        }
+        if (file4) {
+            content.file4 = file4;
+        }
+        if (file5) {
+            content.file5 = file5;
+        }
+        res.status(200).json({ code: "SUCCESS", message: 'Milestone content uploaded successfully', content });
     } catch (error) {
         next(error);
     }

@@ -80,6 +80,31 @@ module.exports = class Milestone extends Model {
     });
   }
 
+  static async getMilestoneContent(id) {
+    return new Promise((resolve, reject) => {
+      const sql = `SELECT id, milestone_id, IFNULL(link, '') as link, IFNULL(upload_reference, '') as upload_reference, created_at FROM milestone_content WHERE milestone_id = ?`;
+      db.query(sql, [id], (err, results) => {
+        if (err) {
+          reject(err);
+          return;
+        }
+        const content = {
+          link: [],
+          upload_reference: []
+        };
+        results.forEach(result => {
+          if (result.link) {
+            content.link.push(result.link);
+          }
+          if (result.upload_reference) {
+            content.upload_reference.push(result.upload_reference);
+          }
+        });
+        resolve(content);
+      });
+    });
+  }
+
   static async getDueDateOfFinalMilestone(projectId) {
     return new Promise((resolve, reject) => {
       const sql = `SELECT due_date FROM milestones WHERE job_id = ? ORDER BY order_number DESC LIMIT 1`;
