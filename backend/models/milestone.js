@@ -19,6 +19,28 @@ module.exports = class Milestone extends Model {
     });
   }
 
+  static async updateById(id, data) {
+    return new Promise((resolve, reject) => {
+      const sql = `UPDATE milestones SET ? WHERE id = ?`;
+      db.query(sql, [data, id], (err, results) => {
+        if (err) {
+          reject(err);
+          return;
+        }
+        resolve(results);
+      });
+    });
+  }
+
+  static async updateMilestones(milestones){
+    const updatedMilestones = milestones.map(async (milestone) => {
+      await this.updateById(milestone.id, { budget: milestone.budget, status: milestone.status });
+      return milestone;
+    });
+  
+    return Promise.all(updatedMilestones);
+  }
+
   async getDueDateOfFinalMilestone(projectId) {
     return new Promise((resolve, reject) => {
         const sql = `SELECT due_date FROM milestones WHERE job_id = ? ORDER BY order_number DESC LIMIT 1`;

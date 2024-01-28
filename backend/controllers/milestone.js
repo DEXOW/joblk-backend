@@ -5,7 +5,7 @@ exports.createMilestone = async (req, res, next) => {
     try {
         const userId = req.user.id;
         const { jobId, name, description, due_date, priority } = req.body;
-        const job = await Job.findById(userId);
+        const job = await Job.findById(jobId);
 
         if (job.client_id != userId) {
             return res.status(404).json({ error: 'Job not found' });

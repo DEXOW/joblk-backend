@@ -82,7 +82,7 @@ module.exports = class Conversation extends Model {
 
     checkUserExists(id) {
         return new Promise((resolve, reject) => {
-            db.query(`SELECT * FROM ${this.table} WHERE id = ?`, [id], (err, results) => {
+            db.query(`SELECT * FROM users WHERE id = ?`, [id], (err, results) => {
                 if (err) {
                     reject(err);
                     return;

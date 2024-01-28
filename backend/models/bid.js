@@ -31,9 +31,12 @@ class Bid extends Model {
     return db.query(query, [status, timestamp, bidId]);
   }
 
-  async updateValue(bidId, bidValue) {
-    const query = `UPDATE bids SET bid_value = ? WHERE id = ?`;
-    return db.query(query, [bidValue, bidId]);
+  async update(bidId, updatedFields) {
+    if (Object.keys(updatedFields).length === 0) {
+      throw new Error('No fields to update');
+    }
+    const query = 'UPDATE bids SET ? WHERE id = ?';
+    return db.query(query, [updatedFields, bidId]);
   }
 
   async findById(bidId) {
@@ -49,7 +52,7 @@ class Bid extends Model {
 
   async findAllByFreelancer(freelancerId) {
     const sql = `
-      SELECT j.title AS job_title, b.bid_value, b.supporting_content, bs.status AS status_name 
+      SELECT j.title AS job_title, j.id AS job_id, b.id, b.bid_value, b.supporting_content, bs.status AS status_name 
       FROM bids b
       JOIN jobs j ON b.job_id = j.id
       LEFT JOIN bid_status bs ON b.status = bs.id
