@@ -57,10 +57,6 @@ exports.getJobMilestones = async (req, res, next) => {
             return res.status(404).json({ error: 'Job not found' });
         }
 
-        if (job.client_id != userId) {
-            return res.status(404).json({ error: 'Unauthorizied' });
-        }
-
         let milestones = await new Milestone().findByJobId(jobId);
         milestones = milestones.map(milestone => {
             const { job_id, budget, payment_status, status, created_at, updated_at, ...everythingElse } = milestone;
@@ -80,10 +76,6 @@ exports.getJobMilestonesBudgetBid = async (req, res, next) => {
         const job = await Job.findById(userId);
 
         if (!job) {
-            return res.status(404).json({ error: 'Job not found' });
-        }
-
-        if (job.client_id != userId) {
             return res.status(404).json({ error: 'Job not found' });
         }
 

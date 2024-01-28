@@ -32,9 +32,6 @@ class Bid extends Model {
   }
 
   async update(bidId, updatedFields) {
-    if (Object.keys(updatedFields).length === 0) {
-      throw new Error('No fields to update');
-    }
     const query = 'UPDATE bids SET ? WHERE id = ?';
     return db.query(query, [updatedFields, bidId]);
   }

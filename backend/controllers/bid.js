@@ -211,17 +211,7 @@ exports.updateBid = async (req, res, next) => {
     }
 
     await Bid.update(bidId, updatedFields)
-    .then(result => {
-      console.log(result.changedRows);
-      if (result.changedRows > 0) {
-        res.status(200).json({ code: SUCCESS_CODE, message: 'Bid updated successfully' });
-      } else {
-        res.status(200).send({ code: "SUCCESS", message: 'No changes made' });
-      }
-    })
-    .catch(err => {
-      res.send(err);
-    });
+    res.status(200).json({ code: SUCCESS_CODE, message: 'Bid updated successfully' });
   } catch (error) {
     next(error);
   }
