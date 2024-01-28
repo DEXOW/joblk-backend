@@ -45,7 +45,7 @@ exports.createMilestone = async (req, res, next) => {
             order_number: finalOrderNumber,
         });
 
-        res.status(200).json({ code: "SUCCESS", message: 'Milestone created successfully', milestone: newMilestone });
+        res.status(200).json({ code: "SUCCESS", message: 'Milestone created successfully' });
     } catch (error) {
         next(error);
     }
