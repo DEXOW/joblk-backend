@@ -19,7 +19,20 @@ module.exports = class Milestone extends Model {
     });
   }
 
-  async findByJobId(jobId) {
+  async findUsingJobId(jobId) {
+    return new Promise((resolve, reject) => {
+      const sql = `SELECT * FROM milestones WHERE job_id = ? ORDER BY order_number ASC`;
+      db.query(sql, [jobId], (err, results) => {
+        if (err) {
+          reject(err);
+          return;
+        }
+        resolve(results);
+      });
+    });
+  }
+
+  static async findByJobId(jobId) {
     return new Promise((resolve, reject) => {
       const sql = `SELECT * FROM milestones WHERE job_id = ? ORDER BY order_number ASC`;
       db.query(sql, [jobId], (err, results) => {
@@ -52,6 +65,19 @@ module.exports = class Milestone extends Model {
     });
 
     return Promise.all(updatedMilestones);
+  }
+
+  async updateStatus(id, status) {
+    return new Promise((resolve, reject) => {
+      const sql = `UPDATE milestones SET status = ? WHERE id = ?`;
+      db.query(sql, [status, id], (err, results) => {
+        if (err) {
+          reject(err);
+          return;
+        }
+        resolve(results);
+      });
+    });
   }
 
   static async getDueDateOfFinalMilestone(projectId) {

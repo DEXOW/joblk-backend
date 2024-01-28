@@ -123,7 +123,7 @@ exports.updateBidStatus = async (req, res, next) => {
     }
 
     if (status == 2) {
-      const milestones = await new Milestone().findByJobId(currentBid.job_id);
+      const milestones = await new Milestone().findUsingJobId(currentBid.job_id);
       const totalPriority = milestones.reduce((total, milestone) => total + milestone.priority, 0);
 
       const updatedMilestones = milestones.map(milestone => {

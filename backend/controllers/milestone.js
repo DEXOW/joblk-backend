@@ -16,16 +16,16 @@ exports.createMilestone = async (req, res, next) => {
         }
 
         const milestone = new Milestone();
-        const finalMilestoneDueDate = await milestone.getDueDateOfFinalMilestone(jobId);
-        const mostRecentMilestoneDueDate = await milestone.getDueDateOfMostRecentMilestone(jobId);
+        const finalMilestoneDueDate = await Milestone.getDueDateOfFinalMilestone(jobId);
+        const mostRecentMilestoneDueDate = await Milestone.getDueDateOfMostRecentMilestone(jobId);
         const newDueDate = new Date(due_date).getTime();
 
         if (mostRecentMilestoneDueDate && (newDueDate >= finalMilestoneDueDate || newDueDate <= mostRecentMilestoneDueDate)) {
             return res.status(400).json({ code: "ERROR", message: 'Due date must be between the most recent and final milestone due dates' });
         }
 
-        const finalOrderNumber = await milestone.getOrderNumberOfFinalMilestone(jobId);
-        await milestone.incrementOrderNumber(finalOrderNumber);
+        const finalOrderNumber = await Milestone.getOrderNumberOfFinalMilestone(jobId);
+        await Milestone.incrementOrderNumber(finalOrderNumber);
 
         const newMilestone = await milestone.create({
             job_id: jobId,
@@ -148,6 +148,100 @@ exports.updateMilestone = async (req, res, next) => {
                 return res.status(200).json({ message: 'No changes made' });
             }
         });
+    } catch (error) {
+        next(error);
+    }
+}
+
+exports.completeMilestone = async (req, res, next) => {
+    try {
+        const user_id = req.user.id;
+        const { id } = req.params;
+        const milestone = new Milestone();
+        const currentMilestone = await milestone.get(id);
+
+        if (!currentMilestone) {
+            return res.status(404).json({ error: 'Milestone not found' });
+        }
+
+        const job = await Job.findById(currentMilestone.job_id);
+
+        if (job.client_id != user_id) {
+            return res.status(403).json({ error: 'Unauthorized' });
+        }
+
+        const milestones = await Milestone.findByJobId(currentMilestone.job_id);
+        console.log(milestones);
+
+        if (milestones.some(m => m.order_number < currentMilestone.order_number && m.status !== 3)) {
+            return res.status(400).json({ code: "ERROR", message: 'This milestone cannot be completed yet.' });
+        }
+
+        await milestone.updateStatus(id, 3);
+
+        res.status(200).json({ code: "SUCCESS", message: 'Milestone completed successfully' });
+    } catch (error) {
+        next(error);
+    }
+}
+
+exports.uploadMilestoneContent = async (req, res, next) => {
+    try {
+        const user_id = req.user.id;
+        const { id } = req.params;
+        const { content } = req.body;
+        const milestone = new Milestone();
+        const currentMilestone = await milestone.get(id);
+
+        if (!currentMilestone) {
+            return res.status(404).json({ error: 'Milestone not found' });
+        }
+
+        const job = await Job.findById(currentMilestone.job_id);
+
+        if (job.client_id != user_id) {
+            return res.status(403).json({ error: 'Unauthorized' });
+        }
+
+        await milestone.updateContent(id, content);
+
+        res.status(200).json({ code: "SUCCESS", message: 'Milestone content uploaded successfully' });
+    } catch (error) {
+        next(error);
+    }
+}
+
+exports.deleteMilestone = async (req, res, next) => {
+    try {
+        const user_id = req.user.id;
+        const { id } = req.params;
+        const milestone = new Milestone();
+        const currentMilestone = await milestone.get(id);
+
+        if (!currentMilestone) {
+            return res.status(404).json({ error: 'Milestone not found' });
+        }
+
+        const job = await Job.findById(currentMilestone.job_id);
+
+        if (job.client_id != user_id) {
+            return res.status(403).json({ error: 'Unauthorized' });
+        }
+
+        if (currentMilestone.status >= 2) {
+            return res.status(400).json({ error: 'Milestone is closed for changes' });
+        }
+
+        const milestones = await Milestone.findByJobId(currentMilestone.job_id);
+        milestones.sort((a, b) => a.order_number - b.order_number);
+
+        if (milestones[milestones.length - 1].id === currentMilestone.id) {
+            return res.status(400).json({ error: 'The last milestone cannot be deleted' });
+        }
+
+        await milestone.delete(id);
+
+        res.status(200).json({ code: "SUCCESS", message: 'Milestone deleted successfully' });
     } catch (error) {
         next(error);
     }

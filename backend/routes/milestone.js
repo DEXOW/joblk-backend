@@ -9,7 +9,8 @@ router.post('/', middleware.auth, controller.createMilestone);
 router.get('/:id', middleware.auth, controller.getJobMilestones);
 router.get('/:id/bid', middleware.auth, controller.getJobMilestonesBudgetBid);
 router.put('/:id', middleware.auth, controller.updateMilestone);
-// router.put('/:id/upload', middleware.auth, projectControllers.uploadMilestoneContent);
-// router.put('/', middleware.auth, projectControllers.completeMilestone);
+router.put('/:id/complete', middleware.auth, controller.completeMilestone);
+router.put('/:id/upload', middleware.auth, controller.uploadMilestoneContent);
+router.delete('/:id', middleware.auth, controller.deleteMilestone);
 
 module.exports = router;
