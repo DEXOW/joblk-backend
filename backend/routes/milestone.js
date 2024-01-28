@@ -7,7 +7,8 @@ const middleware = require('../middleware');
 // Define your routes here
 router.post('/', middleware.auth, controller.createMilestone);
 router.get('/:id', middleware.auth, controller.getJobMilestones);
-// router.get('/:id/freelancer', middleware.auth, projectControllers.getProjectFreelancerMilestones);
+router.get('/:id/bid', middleware.auth, controller.getJobMilestonesBudgetBid);
+
 // router.put('/:id', middleware.auth, projectControllers.updateMilestoneData);
 // router.put('/:id/upload', middleware.auth, projectControllers.uploadMilestoneContent);
 // router.put('/', middleware.auth, projectControllers.completeMilestone);

@@ -53,8 +53,12 @@ exports.getJobMilestones = async (req, res, next) => {
         const jobId = req.params.id;
         const job = await Job.findById(userId);
 
-        if (job.client_id != userId) {
+        if (!job) {
             return res.status(404).json({ error: 'Job not found' });
+        }
+
+        if (job.client_id != userId) {
+            return res.status(404).json({ error: 'Unauthorizied' });
         }
 
         let milestones = await new Milestone().findByJobId(jobId);
@@ -62,6 +66,36 @@ exports.getJobMilestones = async (req, res, next) => {
             const { job_id, budget, payment_status, status, created_at, updated_at, ...everythingElse } = milestone;
             return everythingElse;
         });
+        res.status(200).send(milestones);
+    } catch (error) {
+        next(error);
+    }
+}
+
+exports.getJobMilestonesBudgetBid = async (req, res, next) => {
+    try {
+        const userId = req.user.id;
+        const jobId = req.params.id;
+        const bid_value = req.body.bid_value;
+        const job = await Job.findById(userId);
+
+        if (!job) {
+            return res.status(404).json({ error: 'Job not found' });
+        }
+
+        if (job.client_id != userId) {
+            return res.status(404).json({ error: 'Job not found' });
+        }
+
+        let milestones = await new Milestone().findByJobId(jobId);
+        const totalPriority = milestones.reduce((total, milestone) => total + milestone.priority, 0);
+
+        milestones = milestones.map(milestone => {
+            const { job_id, payment_status, status, created_at, updated_at, ...everythingElse } = milestone;
+            const budget = (bid_value / totalPriority) * everythingElse.priority;
+            return { ...everythingElse, budget };
+        });
+
         res.status(200).send(milestones);
     } catch (error) {
         next(error);
