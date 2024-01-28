@@ -62,7 +62,6 @@ exports.getJobMilestones = async (req, res, next) => {
         next(error);
     }
 }
-
 exports.getJobMilestonesBudgetBid = async (req, res, next) => {
     try {
         const jobId = req.params.id;
@@ -111,23 +110,16 @@ exports.updateMilestone = async (req, res, next) => {
             return res.status(400).json({ error: 'Milestone is closed for changes' });
         }
 
-        if (due_date) {
-            const finalMilestoneDueDate = new Date(await Milestone.getDueDateOfFinalMilestone(milestone.job_id)).getTime();
-            const milestoneDueDateTimestamp = new Date(milestone.due_date).getTime();
-            const newDueDateTimestamp = new Date(due_date).getTime();
+        const finalMilestoneDueDate = new Date(await Milestone.getDueDateOfFinalMilestone(milestone.job_id)).getTime();
+        const milestoneDueDateTimestamp = new Date(milestone.due_date).getTime();
 
-            if (!(newDueDateTimestamp === finalMilestoneDueDate)) {
-                const mostRecentMilestoneDueDate = await Milestone.getDueDateOfMostRecentMilestone(milestone.job_id);
-                if (mostRecentMilestoneDueDate && (newDueDateTimestamp >= finalMilestoneDueDate || newDueDateTimestamp <= mostRecentMilestoneDueDate)) {
-                    return res.status(400).json({ error: 'Due date must be between the most recent and final milestone due dates' });
-                }
-            }
-            
+        if (due_date && !(milestoneDueDateTimestamp === finalMilestoneDueDate)) {
             const mostRecentMilestoneDueDate = await Milestone.getDueDateOfMostRecentMilestone(milestone.job_id);
-            const newDueDate = new Date(due_date).getTime();
-
-            if (mostRecentMilestoneDueDate && (newDueDate >= finalMilestoneDueDate || newDueDate <= mostRecentMilestoneDueDate)) {
+            const newDueDateTimestamp = new Date(due_date).getTime();
+            if (mostRecentMilestoneDueDate && (newDueDateTimestamp >= finalMilestoneDueDate || newDueDateTimestamp <= mostRecentMilestoneDueDate)) {
                 return res.status(400).json({ error: 'Due date must be between the most recent and final milestone due dates' });
+            } else {
+                updatedFields.due_date = due_date;
             }
         }
 
@@ -137,10 +129,6 @@ exports.updateMilestone = async (req, res, next) => {
 
         if (description) {
             updatedFields.description = description;
-        }
-
-        if (due_date) {
-            updatedFields.due_date = due_date;
         }
 
         if (priority) {
