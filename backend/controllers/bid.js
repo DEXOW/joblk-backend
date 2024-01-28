@@ -136,6 +136,40 @@ exports.updateBidStatus = async (req, res, next) => {
   }
 };
 
+exports.updateBidValue = async (req, res, next) => {
+  try {
+    const user_id = req.user.id;
+    const { bidId, bid_value } = req.body;
+
+    const currentBid = await Bid.findById(bidId);
+    if (!currentBid) {
+      return res.status(404).json({ code: ERROR_CODE, message: 'Bid not found' });
+    }
+
+    if (currentBid.freelancer_id !== user_id) {
+      return res.status(403).json({ code: ERROR_CODE, message: 'Unauthorized' });
+    }
+
+    if(currentBid.bid_value == bid_value) {
+      return res.status(400).json({ code: ERROR_CODE, message: 'Bid value is the same' });
+    }
+
+    const job = await Job.findById(currentBid.job_id);
+
+    const validationErrors = validate.validateBid(bid_value, job.budget);
+
+    if (validationErrors) {
+      return res.status(400).json({ code: ERROR_CODE, message: validationErrors });
+    }
+
+    await Bid.updateValue(bidId, bid_value);
+    res.status(200).json({ code: SUCCESS_CODE, message: 'Bid value updated successfully' });
+  } catch (error) {
+    next(error);
+  }
+
+}
+
 async function createProjectAndMilestone(currentBid, deadline) {
   const project = await new Project().create({ job_id: currentBid.job_id, status: 1, budget: currentBid.bid_value });
   await new Milestone().create({

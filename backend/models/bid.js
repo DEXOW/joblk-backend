@@ -31,6 +31,11 @@ class Bid extends Model {
     return db.query(query, [status, timestamp, bidId]);
   }
 
+  async updateValue(bidId, bidValue) {
+    const query = `UPDATE bids SET bid_value = ? WHERE id = ?`;
+    return db.query(query, [bidValue, bidId]);
+  }
+
   async findById(bidId) {
     const query = 'SELECT * FROM bids WHERE id = ?';
     return this.queryFirst(query, [bidId]);
@@ -70,9 +75,9 @@ class Bid extends Model {
                JOIN users u ON b.freelancer_id = u.id
                LEFT JOIN bid_status bs ON b.status = bs.id
                WHERE b.job_id = ?`;
-  
+
     const results = await this.queryAll(sql, [job_id]);
-  
+
     const bidsPromises = results.map(result => {
       const biddingScore = this.calculateBiddingScore(result.bid_value, originalBudget);
       const ratingScore = this.calculateRatingScore(result.rating_score, result.num_of_reviews, minNumOfReviews, overallMeanRating);
@@ -86,12 +91,12 @@ class Bid extends Model {
         bid_Score: Number(finalScore.toFixed(2))
       };
     });
-  
+
     const bids = await Promise.all(bidsPromises);
     bids.sort((a, b) => {
       return b.bid_Score - a.bid_Score;
     });
-  
+
     return bids;
   }
 
