@@ -104,7 +104,7 @@ module.exports = class Milestone extends Model {
 
   static async getMilestoneContent(id) {
     return new Promise((resolve, reject) => {
-      const sql = `SELECT id, milestone_id, IFNULL(link, '') as link, IFNULL(upload_reference, '') as upload_reference, created_at FROM milestone_content WHERE milestone_id = ?`;
+      const sql = `SELECT id, milestone_id, created_at, IFNULL(link, '') as link, IFNULL(upload_reference, '') as upload_reference FROM milestone_content WHERE milestone_id = ?`;
       db.query(sql, [id], (err, results) => {
         if (err) {
           reject(err);
@@ -119,7 +119,10 @@ module.exports = class Milestone extends Model {
             content.link.push(result.link);
           }
           if (result.upload_reference) {
-            content.upload_reference.push(result.upload_reference);
+            content.upload_reference.push({
+              reference: result.upload_reference,
+              createdAt: result.created_at
+            });
           }
         });
         resolve(content);
