@@ -8,8 +8,8 @@ exports.createMilestone = async (req, res, next) => {
         const { jobId, name, description, due_date, priority } = req.body;
         const job = await Job.findById(jobId);
 
-        if (job.status == 4) {
-            return res.status(400).json({ code: "ERROR", message: 'Project has been completed' });
+        if (job.status >= 2) {
+            return res.status(400).json({ code: "ERROR", message: 'Job is not in editing stage' });
         }
 
         if (!jobId || !name || !description || !due_date || !priority) {
@@ -53,7 +53,7 @@ exports.getJobMilestones = async (req, res, next) => {
             return res.status(404).json({ error: 'Job not found' });
         }
 
-        let milestones = await new Milestone().findByJobId(jobId);
+        let milestones = await new Milestone().findUsingJobId(jobId);
         milestones = milestones.map(milestone => {
             const { job_id, budget, payment_status, status, created_at, updated_at, ...everythingElse } = milestone;
             return everythingElse;
@@ -73,7 +73,7 @@ exports.getJobMilestonesBudgetBid = async (req, res, next) => {
             return res.status(404).json({ error: 'Job not found' });
         }
 
-        let milestones = await new Milestone().findByJobId(jobId);
+        let milestones = await new Milestone().findUsingJobId(jobId);
         const totalPriority = milestones.reduce((total, milestone) => total + milestone.priority, 0);
 
         milestones = milestones.map(milestone => {
@@ -103,7 +103,6 @@ exports.getMilestoneContent = async (req, res, next) => {
     } catch (error) {
         next(error);
     }
-
 }
 
 exports.updateMilestone = async (req, res, next) => {

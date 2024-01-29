@@ -45,6 +45,28 @@ module.exports = class Milestone extends Model {
     });
   }
 
+  async getMilestonesByProjectId(projectId) {
+    return new Promise((resolve, reject) => {
+      const sql1 = `SELECT job_id FROM projects WHERE id = ?`;
+      db.query(sql1, [projectId], (err, results) => {
+        if (err) {
+          reject(err);
+          return;
+        }
+
+        const jobId = results[0].job_id;
+        const sql2 = `SELECT * FROM milestones WHERE job_id = ? ORDER BY order_number ASC`;
+        db.query(sql2, [jobId], (err, results) => {
+          if (err) {
+            reject(err);
+            return;
+          }
+          resolve(results);
+        });
+      });
+    });
+  }
+
   static async updateById(id, data) {
     return new Promise((resolve, reject) => {
       const sql = `UPDATE milestones SET ? WHERE id = ?`;
