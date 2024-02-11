@@ -1,16 +1,11 @@
 const Review = require('../models/review');
+const validate = require('../utils/validate');
 
 exports.createReview = (req, res) => {
   const review = new Review();
   const reviewData = req.body;
 
   reviewData.reviewer_id = req.user.id
-
-  if (!validate.validateTitle(reviewData.content)) {
-    res.status(400).send({ message: 'Invalid format' });
-    return;
-  }
-
 
   review.create(reviewData)
     .then((reviewId) => {

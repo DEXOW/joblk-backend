@@ -10,7 +10,7 @@ const gc = require('../../config/gc_config');
  *   "originalname" and "buffer" as keys
  */
 
-const uploadImage = (file, bucketName = 'joblk-store') => new Promise((resolve, reject) => {
+const uploadImage = (file, bucketName = 'joblk_store') => new Promise((resolve, reject) => {
   const { originalname, buffer } = file
   const bucket = gc.bucket(bucketName)
 
