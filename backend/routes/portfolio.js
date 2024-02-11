@@ -7,6 +7,7 @@ const middleware = require('../middleware');
 // Routes
 router.get('/', middleware.auth, controllers.getProjects);
 router.post('/', middleware.auth, controllers.addProject);
-// router.delete('/', middleware.auth, controllers.deleteUser);
+router.put('/', middleware.auth, controllers.updateProject);
+router.delete('/', middleware.auth, controllers.deleteProject);
 
 module.exports = router;

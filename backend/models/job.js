@@ -32,10 +32,10 @@ module.exports = class Job extends model {
     });
   }
 
-  static async updateFreelancerIdAndStatus(job_id, freelancer_id) {
+  static async updateFreelancerIdAndStatus(job_id, freelancer_id, budget) {
     return new Promise((resolve, reject) => {
-      const sql = `UPDATE jobs SET freelancer_id = ?, job_status = ? WHERE id = ?`;
-      db.query(sql, [freelancer_id, 2, job_id], (err, results) => {
+      const sql = `UPDATE jobs SET freelancer_id = ?, job_status = ?, budget = ? WHERE id = ?`;
+      db.query(sql, [freelancer_id, 2, budget, job_id], (err, results) => {
         if (err) {
           reject(err);
           return;

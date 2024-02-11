@@ -6,97 +6,23 @@ module.exports = class Milestone extends Model {
     super('milestones');
   }
 
-  async getMilestonesByProjectId(projectId) {
+  static async findById(id) {
     return new Promise((resolve, reject) => {
-      const sql = `SELECT id, project_id, name, description, due_date, priority, budget, status, order_number 
-      FROM milestones WHERE project_id = ? ORDER BY order_number ASC`;
-      db.query(sql, [projectId], (err, results) => {
-        if (err) {
-          reject(err);
-          return;
-        }
-        resolve(results);
-      });
-    });
-  }
-
-  async getDueDateOfFinalMilestone(projectId) {
-    return new Promise((resolve, reject) => {
-        const sql = `SELECT due_date FROM milestones WHERE project_id = ? ORDER BY order_number DESC LIMIT 1`;
-        db.query(sql, [projectId], (err, results) => {
-            if (err) {
-                reject(err);
-                return;
-            }
-            if (results[0]) {
-                resolve(results[0].due_date);
-            } else {
-                resolve(null);
-            }
-        });
-    });
- }
-
-  async getDueDateOfMostRecentMilestone(projectId) {
-    return new Promise((resolve, reject) => {
-      const sql = `SELECT due_date FROM milestones WHERE project_id = ? AND order_number = (SELECT MAX(order_number) FROM milestones WHERE project_id = ? AND order_number != (SELECT MAX(order_number) FROM milestones WHERE project_id = ?))`;
-      db.query(sql, [projectId, projectId, projectId], (err, results) => {
-        if (err) {
-          reject(err);
-          return;
-        }
-        if (results[0]) {
-          resolve(results[0].due_date);
-        } else {
-          resolve(null);
-        }
-      });
-    });
-  }
-
-  async getOrderNumberOfFinalMilestone(projectId) {
-    return new Promise((resolve, reject) => {
-      const sql = `SELECT MAX(order_number) as maxOrderNumber FROM milestones WHERE project_id = ?`;
-      db.query(sql, [projectId], (err, results) => {
-        if (err) {
-          reject(err);
-          return;
-        }
-        resolve(results[0].maxOrderNumber);
-      });
-    });
-  }
-
-  async incrementOrderNumber(orderNumber) {
-    return new Promise((resolve, reject) => {
-      const sql = `UPDATE milestones SET order_number = order_number + 1 WHERE order_number >= ?`;
-      db.query(sql, [orderNumber], (err, results) => {
-        if (err) {
-          reject(err);
-          return;
-        }
-        resolve(results);
-      });
-    });
-  }
-
-  async getOrderNumber(id) {
-    return new Promise((resolve, reject) => {
-      const sql = `SELECT order_number FROM milestones WHERE id = ?`;
+      const sql = `SELECT * FROM milestones WHERE id = ?`;
       db.query(sql, [id], (err, results) => {
         if (err) {
           reject(err);
           return;
         }
-        resolve(results[0].order_number);
+        resolve(results[0]);
       });
     });
   }
 
-  async decrementOrderNumbers(orderNumber) {
+  async findUsingJobId(jobId) {
     return new Promise((resolve, reject) => {
-      const sql = `UPDATE milestones SET order_number = order_number - 1 WHERE order_number > ?`;
-      db.query(sql, [orderNumber], (err, results) => {
+      const sql = `SELECT * FROM milestones WHERE job_id = ? ORDER BY order_number ASC`;
+      db.query(sql, [jobId], (err, results) => {
         if (err) {
           reject(err);
           return;
@@ -106,11 +32,10 @@ module.exports = class Milestone extends Model {
     });
   }
 
-  async getAllOrderedByOrderNumber() {
+  static async findByJobId(jobId) {
     return new Promise((resolve, reject) => {
-      const sql = `SELECT * FROM milestones WHERE status = 1 ORDER BY order_number ASC`;
-      db.query(sql, (err, results) => {
-        console.log(results);
+      const sql = `SELECT * FROM milestones WHERE job_id = ? ORDER BY order_number ASC`;
+      db.query(sql, [jobId], (err, results) => {
         if (err) {
           reject(err);
           return;
@@ -118,6 +43,50 @@ module.exports = class Milestone extends Model {
         resolve(results);
       });
     });
+  }
+
+  async getMilestonesByProjectId(projectId) {
+    return new Promise((resolve, reject) => {
+      const sql1 = `SELECT job_id FROM projects WHERE id = ?`;
+      db.query(sql1, [projectId], (err, results) => {
+        if (err) {
+          reject(err);
+          return;
+        }
+
+        const jobId = results[0].job_id;
+        const sql2 = `SELECT * FROM milestones WHERE job_id = ? ORDER BY order_number ASC`;
+        db.query(sql2, [jobId], (err, results) => {
+          if (err) {
+            reject(err);
+            return;
+          }
+          resolve(results);
+        });
+      });
+    });
+  }
+
+  static async updateById(id, data) {
+    return new Promise((resolve, reject) => {
+      const sql = `UPDATE milestones SET ? WHERE id = ?`;
+      db.query(sql, [data, id], (err, results) => {
+        if (err) {
+          reject(err);
+          return;
+        }
+        resolve(results);
+      });
+    });
+  }
+
+  static async updateMilestones(milestones) {
+    const updatedMilestones = milestones.map(async (milestone) => {
+      await this.updateById(milestone.id, { budget: milestone.budget, status: milestone.status });
+      return milestone;
+    });
+
+    return Promise.all(updatedMilestones);
   }
 
   async updateStatus(id, status) {
@@ -133,22 +102,121 @@ module.exports = class Milestone extends Model {
     });
   }
 
-  async getFinalMilestone(projectId) {
+  static async getMilestoneContent(id) {
     return new Promise((resolve, reject) => {
-      const sql = `
-        SELECT * FROM milestones WHERE project_id = ? AND order_number = (SELECT MAX(order_number) FROM milestones WHERE project_id = ?)
-    `;
-      db.query(sql, [projectId, projectId], (err, results) => {
+      const sql = `SELECT id, milestone_id, created_at, IFNULL(link, '') as link, IFNULL(upload_reference, '') as upload_reference FROM milestone_content WHERE milestone_id = ?`;
+      db.query(sql, [id], (err, results) => {
         if (err) {
           reject(err);
           return;
         }
-        resolve(results[0]);
+        const content = {
+          link: [],
+          upload_reference: []
+        };
+        results.forEach(result => {
+          if (result.link) {
+            content.link.push(result.link);
+          }
+          if (result.upload_reference) {
+            content.upload_reference.push({
+              reference: result.upload_reference,
+              createdAt: result.created_at
+            });
+          }
+        });
+        resolve(content);
       });
-    })
+    });
   }
 
-  async calculateTotalPriority(projectId) {
+  static async getDueDateOfFinalMilestone(projectId) {
+    return new Promise((resolve, reject) => {
+      const sql = `SELECT due_date FROM milestones WHERE job_id = ? ORDER BY order_number DESC LIMIT 1`;
+      db.query(sql, [projectId], (err, results) => {
+        if (err) {
+          reject(err);
+          return;
+        }
+        if (results[0]) {
+          resolve(results[0].due_date);
+        } else {
+          resolve(null);
+        }
+      });
+    });
+  }
+
+  static async getDueDateOfMostRecentMilestone(projectId) {
+    return new Promise((resolve, reject) => {
+      const sql = `SELECT due_date FROM milestones WHERE job_id = ? AND order_number = (SELECT MAX(order_number) FROM milestones WHERE job_id = ? AND order_number != (SELECT MAX(order_number) FROM milestones WHERE job_id = ?))`;
+      db.query(sql, [projectId, projectId, projectId], (err, results) => {
+        if (err) {
+          reject(err);
+          return;
+        }
+        if (results[0]) {
+          resolve(results[0].due_date);
+        } else {
+          resolve(null);
+        }
+      });
+    });
+  }
+
+  static async getOrderNumberOfFinalMilestone(projectId) {
+    return new Promise((resolve, reject) => {
+      const sql = `SELECT MAX(order_number) as maxOrderNumber FROM milestones WHERE job_id = ?`;
+      db.query(sql, [projectId], (err, results) => {
+        if (err) {
+          reject(err);
+          return;
+        }
+        resolve(results[0].maxOrderNumber);
+      });
+    });
+  }
+
+  static async incrementOrderNumber(orderNumber) {
+    return new Promise((resolve, reject) => {
+      const sql = `UPDATE milestones SET order_number = order_number + 1 WHERE order_number >= ?`;
+      db.query(sql, [orderNumber], (err, results) => {
+        if (err) {
+          reject(err);
+          return;
+        }
+        resolve(results);
+      });
+    });
+  }
+
+  static async decrementOrderNumbers(orderNumber) {
+    return new Promise((resolve, reject) => {
+      const sql = `UPDATE milestones SET order_number = order_number - 1 WHERE order_number > ?`;
+      db.query(sql, [orderNumber], (err, results) => {
+        if (err) {
+          reject(err);
+          return;
+        }
+        resolve(results);
+      });
+    });
+  }
+
+  static async updateStatus(id, status) {
+    return new Promise((resolve, reject) => {
+      const sql = `UPDATE milestones SET status = ? WHERE id = ?`;
+      db.query(sql, [status, id], (err, results) => {
+        if (err) {
+          reject(err);
+          return;
+        }
+        resolve(results);
+      });
+    });
+  }
+
+  static async calculateTotalPriority(projectId) {
     return new Promise((resolve, reject) => {
       const sql = `SELECT SUM(priority) as totalPriority FROM milestones WHERE project_id = ?`;
       db.query(sql, [projectId], (err, results) => {
@@ -160,76 +228,4 @@ module.exports = class Milestone extends Model {
       });
     });
   }
-
-  async updateBudgets(projectId) {
-    return new Promise((resolve, reject) => {
-      const sqlDropTempTable = `DROP TEMPORARY TABLE IF EXISTS temp_table`;
-      db.query(sqlDropTempTable, (err, results) => {
-        if (err) {
-          reject(err);
-          return;
-        }
-        const sqlCreateTempTable = `
-     CREATE TEMPORARY TABLE temp_table AS (
-         SELECT SUM(priority) as totalPriority FROM milestones WHERE project_id = ?
-     )
- `;
-        db.query(sqlCreateTempTable, [projectId], (err, results) => {
-          if (err) {
-            reject(err);
-            return;
-          }
-          const sqlUpdateMilestones = `
-         UPDATE milestones 
-         SET budget = (SELECT budget FROM projects WHERE id = ?) / (SELECT totalPriority FROM temp_table) * priority
-         WHERE project_id = ?
-     `;
-          db.query(sqlUpdateMilestones, [projectId, projectId], (err, results) => {
-            if (err) {
-              reject(err);
-              return;
-            }
-            resolve(results);
-          });
-        });
-      });
-    });
-  }
-
-  //  async updateBudgets(projectId) {
-  //     return new Promise((resolve, reject) => {
-  //         const sql = `
-  //             UPDATE milestones 
-  //             SET budget = (SELECT budget FROM projects WHERE id = ?) / (SELECT SUM(priority) FROM milestones WHERE project_id = ?) * priority
-  //             WHERE project_id = ?
-  //         `;
-  //         db.query(sql, [projectId, projectId, projectId], (err, results) => {
-  //             if (err) {
-  //                 reject(err);
-  //                 return;
-  //             }
-  //             resolve(results);
-  //         });
-  //     });
-  //  }
-
-  async addContent(milestone_id, links) {
-    return new Promise((resolve, reject) => {
-        // Split the links string into an array of URLs
-        const urls = links.split(',');
- 
-        // Convert the array of URLs back into a string
-        const linksString = urls.join(',');
- 
-        // Insert the links into the milestone_content table
-        const sql = `INSERT INTO milestone_content (milestone_id, links) VALUES (?, ?)`;
-        db.query(sql, [milestone_id, linksString], (err, results) => {
-            if (err) {
-                reject(err);
-                return;
-            }
-            resolve(results);
-        });
-    });
- }
 };

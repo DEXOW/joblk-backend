@@ -1,5 +1,6 @@
 const Job = require('../models/job');
 const validate = require('../utils/validate');
+const Milestone = require('../models/milestone');
 
 exports.createJob = (req, res) => {
   const job = new Job();
@@ -29,12 +30,38 @@ exports.createJob = (req, res) => {
   //TODO add validations
   job.create(jobData)
     .then((jobId) => {
+      createMilestone(jobId, jobData.deadline)
       res.send({ message: 'Job created successfully', jobId });
     })                          
     .catch((err) => {
       res.status(500).send({ message: 'Could not create job', err });
     });
 };
+
+async function createMilestone(jobId, deadline) {
+  await new Milestone().create({
+    job_id: jobId,
+    name: 'Final Milestone',
+    description: 'This is the final milestone, submit your work here.',
+    due_date: deadline,
+    priority: 5,
+    order_number: 1,
+  });
+}
+
+exports.getClientJobs = (req, res) => {
+  const job = new Job();
+  const clientId = req.params.id;
+
+  job.getAll()
+    .then((jobs) => {
+      res.send(jobs.filter(job => job.client_id == clientId));
+    })
+    .catch((err) => {
+      res.status(500).send({ message: 'Could not retrieve jobs', err });
+    });
+};
+
 
 exports.getJobs = (req, res) => {
   const job = new Job();

@@ -1,7 +1,7 @@
 require("dotenv").config();
 
 const express = require("express");
-const session = require("express-session");
+const multer = require("multer");
 const cookieParser = require("cookie-parser");
 const cors = require("cors");
 const Rollbar = require("rollbar");
@@ -31,6 +31,7 @@ const userRouter = require("./routes/user");
 const portfolioRouter = require("./routes/portfolio");
 const jobRouter = require("./routes/job");
 const bidRouter = require("./routes/bid");
+const milestoneRouter = require("./routes/milestone")
 const projectRouter = require("./routes/project");
 const paymentRouter = require("./routes/payment");
 const conversationRouter = require("./routes/conversation");
@@ -38,12 +39,20 @@ const messageRouter = require("./routes/message");
 const reviewRouter = require("./routes/review");
 
 const corsOptions = {
-    origin: ['https://joblk-frontend.vercel.app', 'http://localhost:3000', 'https://joblk-frontend-git-dev-thinal-manethsw.vercel.app'], 
+    origin: ['https://joblk-frontend.vercel.app', 'http://localhost:3000', 'https://joblk-frontend-git-dev-thinal-manethsw.vercel.app', 'https://joblk.vercel.app'], 
     credentials: true,
     optionSuccessStatus: 200
 }
 
+const multerMid = multer({
+    storage: multer.memoryStorage(),
+    limits: {
+      fileSize: 5 * 1024 * 1024,
+    },
+});
+
 app.use(cors(corsOptions));
+app.use(multerMid.any());
 app.use(express.json());
 app.use(cookieParser());
 
@@ -53,6 +62,7 @@ app.use("/user", middleware.auth_request, userRouter);
 app.use("/portfolio", middleware.auth_request, portfolioRouter);
 app.use("/job", middleware.auth_request, jobRouter);
 app.use("/bid", middleware.auth_request, bidRouter);
+app.use("/milestone", middleware.auth_request, milestoneRouter);
 app.use("/project", middleware.auth_request, projectRouter);
 app.use("/payment", paymentRouter);
 app.use("/conversation", middleware.auth_request, conversationRouter);

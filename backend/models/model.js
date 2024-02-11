@@ -42,10 +42,7 @@ module.exports = class Model {
   }
 
   update(id, data) {
-    console.log('ID:', id);
-    console.log('Data:', data);
     return new Promise((resolve, reject) => {
-      console.log('Data:', data);
       db.query(`UPDATE ${this.table} SET ? WHERE id = ?`, [data, id], (err, results) => {
         if (err) {
           reject(err);

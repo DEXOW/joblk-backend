@@ -5,6 +5,7 @@ const Conversation = require('../models/conversation'); // Assuming you have a C
 module.exports = {
   getMessages: async (req, res) => {
     const conversationId = req.params.id;
+    const userId = req.user.id;
     const message = new Message();
     const conversation = new Conversation();
 
@@ -15,8 +16,16 @@ module.exports = {
     }
 
     message.getByConversationId(conversationId)
-      .then(messages => res.json(messages))
-      .catch(err => res.status(500).json({error: err}));
+      .then(messages => {
+        // Update read_status of the messages that are fetched
+        messages.forEach(msg => {
+          if (msg.sender_id !== userId && msg.read_status === 0) {
+            message.update(msg.id, { read_status: 1 });
+          }
+        });
+        res.json(messages);
+      })
+      .catch(err => res.status(500).json({ error: err }));
   },
 
   createMessage: async (req, res) => {
@@ -37,8 +46,8 @@ module.exports = {
       return res.status(403).json({ error: 'Sender not part of the conversation' });
     }
 
-    message.create({ conversation_id:conversationId, sender_id:senderId, message_content:messageContent })
-      .then(() => res.json({message: 'Message sent!'}))
-      .catch(err => res.status(500).json({error: err}));
+    message.create({ conversation_id: conversationId, sender_id: senderId, message_content: messageContent })
+      .then(() => res.json({ message: 'Message sent!' }))
+      .catch(err => res.status(500).json({ error: err }));
   }
 };
