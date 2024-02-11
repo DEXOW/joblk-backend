@@ -39,7 +39,7 @@ const messageRouter = require("./routes/message");
 const reviewRouter = require("./routes/review");
 
 const corsOptions = {
-    origin: ['https://joblk-frontend.vercel.app', 'http://localhost:3000', 'https://joblk-frontend-git-dev-thinal-manethsw.vercel.app', 'https://joblk.vercel.app/'], 
+    origin: ['https://joblk-frontend.vercel.app', 'http://localhost:3000', 'https://joblk-frontend-git-dev-thinal-manethsw.vercel.app', 'https://joblk.vercel.app'], 
     credentials: true,
     optionSuccessStatus: 200
 }
