@@ -44,10 +44,10 @@ exports.getAllUsers = (req, res) => {
     .then(async (users) => {
       // Remove password and id from each user
       const usersWithoutPasswordAndId = await Promise.all(users.map(async (result) => {
-        const { password, id, ...userWithoutPasswordAndId } = result;
+        const { password, ...userWithoutPassword } = result;
         const averageRating = await user.getAverageRating(result.id);
-        userWithoutPasswordAndId.averageRating = averageRating ?? 0;
-        return userWithoutPasswordAndId;
+        userWithoutPassword.averageRating = averageRating ?? 0;
+        return userWithoutPassword;
       }));
 
       res.send(usersWithoutPasswordAndId);

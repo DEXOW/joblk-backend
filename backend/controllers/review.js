@@ -42,8 +42,6 @@ exports.getReviewsForUser = (req, res) => {
   const review = new Review();
   const userId = parseInt(req.params.id);
 
-  
-
   review.getAll()
     .then((reviews) => {
       const userReviews = reviews.filter(review => review.reviewee_id === userId);

@@ -101,18 +101,13 @@ exports.completeProject = async (req, res, next) => {
 
         const milestones = await milestone.getMilestonesByProjectId(id);
 
-        const allMilestonesPaymentsCompleted = milestones.every(m => m.payment_status === 2);
-        if (!allMilestonesPaymentsCompleted) {
-            return res.status(400).json({ error: 'All milestone payments must be completed' });
-        }
-
         const allMilestonesCompleted = milestones.every(m => m.status === 3);
         if (!allMilestonesCompleted) {
             return res.status(400).json({ error: 'All milestones must be completed' });
         }
 
         await project.update(id, { status: 2 });
-        await job.update(currentJob.id, { job_status: 5 });
+        await job.update(currentJob.id, { job_status: 3 });
 
         res.status(200).json({ code: "SUCCESS", message: 'Project is completed' });
     } catch (error) {
